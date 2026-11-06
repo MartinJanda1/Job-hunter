@@ -49,7 +49,8 @@ Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region 
 - **`apps/web`** – Nuxt 3 s `compatibilityVersion: 4` (frontend v `app/`, API v `server/`).
   - `server/api/cron/*.post.ts` – vstupní body pro práci na pozadí; každý začíná `requireCronSecret(event)` (`Authorization: Bearer $CRON_SECRET`) a jen volá funkci z `@job-hunter/core`.
   - `server/api/ingest/mail.post.ts` – příjem e-mailů z Apps Scriptu, `requireBearer(event, 'INGEST_SECRET')`. Vercel přijme tělo max. 4,5 MB (skript posílá dávky ≤ 3 MB).
-  - `server/utils/` – `useDb()`, `requireBearer()` / `requireCronSecret()` (Nitro auto-import).
+  - `server/utils/` – `useDb()`, `requireBearer()` / `requireCronSecret()`, přihlášení `session.ts` (Nitro auto-import).
+  - **Přihlášení:** celá aplikace je za heslem (`server/middleware/auth.ts`); výjimky jen `/login`, `/api/auth/*`, `/api/cron/*`, `/api/ingest/*` (vlastní tokeny) a statické soubory. Jedno heslo `APP_PASSWORD`, cookie `jh_session` = expirace + HMAC (`SESSION_SECRET`), 30 dní, bez DB. Změna `SESSION_SECRET` odhlásí všechna zařízení. Nový veřejný endpoint = výslovně ho přidat do `PUBLIC_PREFIXES`. Vercel Deployment Protection na Hobby produkci nechrání, proto vlastní řešení.
   - `GET /api/jobs?status=…|all` – posledních 100 nabídek z DB (výchozí `matched`).
   - `nuxt.config.ts` načítá `../../.env.local` a `../../.env` z kořene repa (Nuxt by jinak četl jen `apps/web/.env`).
   - `nitro-types.d.ts` doplňuje typy nitra pro `nuxt.config` (bez něj `nuxt typecheck` nezná `nitro.vercel`).

@@ -11,7 +11,10 @@ const meta = (job: Job) =>
 
 <template>
   <main class="wrap">
-    <h1>Job-hunter</h1>
+    <header class="top">
+      <h1>Job-hunter</h1>
+      <form method="post" action="/api/auth/logout"><button class="logout">Odhlásit</button></form>
+    </header>
     <p v-if="pending">Načítám…</p>
     <p v-else-if="!jobs?.length">Zatím žádné vhodné nabídky.</p>
     <ul v-else class="list">
@@ -34,4 +37,6 @@ body { font-family: system-ui, sans-serif; margin: 0; background: #f6f7f9; color
 .card { background: #fff; border: 1px solid #e3e5e8; border-radius: 10px; padding: 14px 16px; }
 .row { display: flex; justify-content: space-between; gap: 12px; font-weight: 600; }
 .score { color: #0a7a3d; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.logout { font: inherit; background: none; border: 1px solid #c9ccd1; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
 </style>
