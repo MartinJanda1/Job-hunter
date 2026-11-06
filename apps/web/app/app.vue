@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import type { Job } from '@job-hunter/shared'
+import { SOURCE_LABELS, type Job } from '@job-hunter/shared'
 
 const { data: jobs, pending } = await useFetch<Job[]>('/api/jobs')
+
+const meta = (job: Job) =>
+  [job.company, job.location, job.salaryText, `zdroj: ${SOURCE_LABELS[job.source] ?? job.source}`]
+    .filter(Boolean)
+    .join(' · ')
 </script>
 
 <template>
@@ -15,7 +20,7 @@ const { data: jobs, pending } = await useFetch<Job[]>('/api/jobs')
           <a :href="job.url" target="_blank" rel="noopener">{{ job.title }}</a>
           <span v-if="job.score != null" class="score">{{ job.score }} %</span>
         </div>
-        <small>{{ job.company }} · {{ job.location }} · {{ job.status }}</small>
+        <small>{{ meta(job) }}</small>
         <p v-if="job.scoreReason">{{ job.scoreReason }}</p>
       </li>
     </ul>

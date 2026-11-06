@@ -56,5 +56,16 @@ export interface JobSource {
   fetchJobs(criteria: SearchCriteria, prevState?: SourceState): Promise<FetchResult>
 }
 
+/**
+ * Zobrazované názvy zdrojů (klíč = `JobSource.name`). Remotive a Remote OK podmínkami API
+ * vyžadují uvedení zdroje u nabídky – UI ho proto zobrazuje vždy.
+ */
+export const SOURCE_LABELS: Record<string, string> = {
+  mpsv: 'Úřad práce ČR',
+  remotive: 'Remotive',
+  remoteok: 'Remote OK',
+  rss: 'We Work Remotely',
+}
+
 /** Kategorie příchozí pošty */
 export type MailCategory = 'interview' | 'rejection' | 'question' | 'other'

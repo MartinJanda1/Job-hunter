@@ -57,7 +57,8 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Průzkum zdrojů nabídek – viz [docs/zdroje.md](docs/zdroje.md)
 - [x] Úřad práce ČR (otevřená data MPSV) – IT nabídky z celé ČR
 - [ ] E-mailoví hlídači portálů (Jobs.cz, Prace.cz, StartupJobs, LinkedIn…) přes Gmail
-- [ ] Remote portály s API (Remotive, RemoteOK), Jooble API
+- [x] Remote portály s API (Remotive, Remote OK)
+- [ ] Jooble API (čeká na API klíč)
 - [ ] Hodnocení shody s CV přes Claude API
 - [ ] Nastavení kritérií ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem

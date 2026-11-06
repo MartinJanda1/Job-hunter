@@ -8,13 +8,15 @@ Průzkum z 2026-11-06 (robots.txt, veřejné feedy/API, dokumentace). Zásada: j
 |---|---|---|---|
 | Úřad práce ČR (otevřená data MPSV) | `sources/mpsv.ts` | `https://data.mpsv.cz/od/soubory/volna-mista/volna-mista.json` | ~190 MB, denní aktualizace, podmíněné stažení přes ETag. Filtr CZ-ISCO 25xx/35xx (IT): ~926 nabídek, ~480 Praha. Mzda od–do, IČO. Vlastní URL má jen zlomek nabídek; formát odkazu na detail na uradprace.cz zatím neověřen. |
 | We Work Remotely | `sources/rss.ts` | RSS kategorií programming, front-end | Jen remote, anglicky. |
+| Remotive | `sources/remotive.ts` | `https://remotive.com/api/remote-jobs?category=software-dev` | **Podmínky:** odkaz na URL nabídky na Remotive + uvést Remotive jako zdroj; max. 4 dotazy/den (stahujeme 1× za 6 h); nabídky zpožděné o 24 h; nepřeposílat na jiné job weby. |
+| Remote OK | `sources/remoteok.ts` | `https://remoteok.com/api` | **Podmínky:** odkaz na URL nabídky na Remote OK (bez nofollow) + uvést „Remote OK“ jako zdroj; nepoužívat logo. 1× za 6 h. API posílá ne-ASCII znaky dvojitě zakódované – opravuje `fixMojibake`. |
 
 ## Plánované
 
 | Zdroj | Přístup | Poznámka |
 |---|---|---|
-| E-mailoví hlídači (Jobs.cz, Prace.cz, StartupJobs, LinkedIn, Indeed, Cocuma…) | Gmail API – parsování e-mailů od portálů | Jediná legální cesta k velkým portálům bez veřejného feedu. Parser pro každou šablonu e-mailu. |
-| Remotive, RemoteOK, Jobicy | veřejné API / RSS | Jen remote. Ověřit podmínky (uvedení zdroje, limity frekvence). |
+| E-mailoví hlídači (Jobs.cz, Prace.cz, StartupJobs, LinkedIn, Indeed, Cocuma, annonce.cz…) | Google Apps Script v Gmailu → endpoint aplikace | Jediná legální cesta k velkým portálům bez veřejného feedu. Parser pro každou šablonu e-mailu. |
+| Jobicy | veřejné API / RSS | Jen remote. Ověřit podmínky. |
 | Jooble | oficiální REST API, klíč na žádost (jooble.org/api/about) | Agregátor s CZ verzí; pokrytí ČR ověřit prvním dotazem. |
 
 ## Nepoužívat (bez veřejného přístupu)
@@ -27,3 +29,4 @@ Průzkum z 2026-11-06 (robots.txt, veřejné feedy/API, dokumentace). Zásada: j
 | LinkedIn | Podmínky zakazují scraping. → hlídače |
 | Indeed | `robots.txt` zakazuje `?rss`, API pro uchazeče není. → hlídače |
 | NoFluffJobs, Cocuma, JobStack.it, Welcome to the Jungle | Bez feedu, `robots.txt` blokuje API / vyhledávací dotazy |
+| annonce.cz | Chráněno Cloudflare challenge (aktivní blokace automatického přístupu), bez RSS. → hlídací pes e-mailem |
