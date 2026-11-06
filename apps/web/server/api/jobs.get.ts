@@ -1,20 +1,18 @@
-import type { Job } from '@job-hunter/shared'
+import { desc, eq } from 'drizzle-orm'
+import type { Job, JobStatus } from '@job-hunter/shared'
+import { rowToJob, schema } from '@job-hunter/core'
 
-// GET /api/jobs – zatím ukázková data; později čtení z databáze, kam zapisuje worker.
-export default defineEventHandler((): Job[] => {
-  return [
-    {
-      id: 'demo:1',
-      source: 'demo',
-      externalId: '1',
-      title: 'Frontend developer (Vue 3)',
-      company: 'Ukázková firma s.r.o.',
-      location: 'Praha / remote',
-      url: 'https://example.com',
-      foundAt: new Date().toISOString(),
-      score: 82,
-      scoreReason: 'Vue 3 a Node.js odpovídají CV',
-      status: 'matched',
-    },
-  ]
+// GET /api/jobs?status=matched|rejected|…|all – posledních 100 nabídek (výchozí: jen vhodné).
+export default defineEventHandler(async (event): Promise<Job[]> => {
+  const status = (getQuery(event).status as JobStatus | 'all' | undefined) ?? 'matched'
+  const { jobs } = schema
+
+  const rows = await useDb()
+    .select()
+    .from(jobs)
+    .where(status === 'all' ? undefined : eq(jobs.status, status))
+    .orderBy(desc(jobs.foundAt))
+    .limit(100)
+
+  return rows.map(rowToJob)
 })

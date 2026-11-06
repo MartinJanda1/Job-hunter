@@ -8,10 +8,12 @@ import type { JobSource } from '@job-hunter/shared'
  * Pozn.: scraping webů bez API často porušuje podmínky použití – preferujte RSS/API.
  */
 const FEEDS: string[] = [
-  // 'https://example.com/jobs.rss?q=vue',
+  'https://weworkremotely.com/categories/remote-programming-jobs.rss',
+  'https://weworkremotely.com/categories/remote-front-end-programming-jobs.rss',
 ]
 
-const parser = new Parser()
+// Timeout, ať jeden pomalý feed nespotřebuje časový limit serverless funkce.
+const parser = new Parser({ timeout: 15_000 })
 
 export const rssSource: JobSource = {
   name: 'rss',

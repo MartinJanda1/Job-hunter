@@ -8,45 +8,55 @@ Job-hunter: osobní vyhledávač pracovních nabídek. Hledá nabídky podle kri
 
 ## Příkazy
 
-npm workspaces monorepo, Node >= 20, ESM (`"type": "module"`) všude.
+npm workspaces monorepo, Node >= 22, ESM (`"type": "module"`) všude.
 
 ```bash
 npm install
-cp .env.example .env          # doplnit hodnoty
-npm run dev:web               # Nuxt dev server, http://localhost:3000
-npm run dev:worker            # worker v tsx watch, načítá ../../.env
-npm run once -w apps/worker   # jeden běh hledání + kontroly pošty bez cronu (vhodné k testování)
-npm run typecheck             # tsc --noEmit (zatím má skript jen worker)
-npm run build                 # build všech workspaces, které ho mají (zatím jen web)
+vercel env pull .env.local    # DATABASE_URL, CRON_SECRET, … z Vercelu (projekt janda3/job-hunter)
+npm run dev                   # Nuxt dev server, http://localhost:3000
+npm run cron:search           # zavolá POST /api/cron/search na localhost (s CRON_SECRET z .env.local)
+npm run cron:search -- https://<deployment>.vercel.app   # totéž proti nasazené verzi
+npm run typecheck             # tsc (packages/core) + nuxt typecheck (apps/web)
+npm run build                 # nuxt build; s NITRO_PRESET=vercel vznikne apps/web/.vercel/output jako na Vercelu
+npm run db:generate           # po změně packages/core/src/db/schema.ts → nová SQL migrace v packages/core/drizzle/
+npm run db:migrate            # aplikuje migrace na Neon (přes DATABASE_URL_UNPOOLED)
+npm run db:studio             # Drizzle Studio nad DB
 ```
 
-Testy ani linter zatím nejsou nastavené.
+Testy ani linter zatím nejsou nastavené. Migrace se generují a commitují; schéma DB neměnit ručně.
 
 ## Architektura
 
-- **`packages/shared`** – jen TypeScript typy (`Job`, `JobStatus`, `SearchCriteria`, `JobSource`, `MailCategory`). Exportuje přímo `src/index.ts` bez buildu; web i worker ho importují jako `@job-hunter/shared`. Změny datového modelu začínají tady.
-- **`apps/worker`** – dlouho běžící Node proces (`src/index.ts`). Přes `node-cron` spouští `searchJobs` (`SEARCH_CRON`) a `checkInbox` (`MAIL_CRON`); s `--once` proběhne jednou a skončí.
-  - Pipeline hledání: každý `JobSource` z `src/sources/index.ts` → `fetchJobs(criteria)` → deduplikace podle `id` → `passesHardFilter` (klíčová slova, bez AI) → stav `matched`/`rejected` → u `matched` notifikace přes `notify()`.
-  - Nový zdroj nabídek = nový adaptér implementující `JobSource`, přidaný do pole `sources`. `id` musí mít tvar `${source}:${externalId}`.
+Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region `fra1`, vedle DB), DB = **Neon Postgres** (Vercel Marketplace, resource `job-hunter-db`). Root directory projektu na Vercelu je `apps/web`; push na `main` = produkční deploy.
+
+- **`packages/shared`** – jen TypeScript typy (`Job`, `JobStatus`, `SearchCriteria`, `JobSource`, `MailCategory`). Změny datového modelu začínají tady (a v `db/schema.ts`).
+- **`packages/core`** – veškerá doménová logika, bez závislosti na Nuxtu: zdroje nabídek (`sources/`), filtr (`filter.ts`), notifikace (`notify/ntfy.ts`), Gmail (`mail/gmail.ts`, zatím stub), DB (`db/schema.ts`, `db/client.ts`) a `runSearch(db)` v `search.ts`.
+  - Pipeline hledání: každý `JobSource` → `fetchJobs(criteria)` → `passesHardFilter` (klíčová slova, bez AI) → stav `matched`/`rejected` → `INSERT … ON CONFLICT DO NOTHING RETURNING` → notifikace jen pro skutečně nově vložené `matched` (víc než 3 = jedna souhrnná).
+  - Ukládají se i `rejected` nabídky, aby se při dalším běhu znovu nehodnotily. Deduplikace = primární klíč `id` ve tvaru `${source}:${externalId}`.
+  - Nový zdroj = adaptér implementující `JobSource`, přidaný do pole v `sources/index.ts`.
   - `filter.ts` má druhý krok `scoreAgainstCv` (TODO): CV z `CV_URL` + popis nabídky → Claude vrátí JSON `{ score: 0–100, reason }`.
-  - `mail/gmail.ts` je zatím stub (plán: `googleapis`, OAuth2, `createDraft`, `checkInbox` s tříděním do `MailCategory`).
-  - Kritéria jsou zatím natvrdo v `criteria.ts`, úložiště je zatím `Map` v paměti.
-  - Relativní importy v workeru používají příponu `.js` (ESM), i když jsou zdrojáky `.ts`.
-- **`apps/web`** – Nuxt 3 s `compatibilityVersion: 4` (frontend ve složce `app/`, API v `server/api/`). `GET /api/jobs` zatím vrací ukázková data; má číst z databáze, do které zapisuje worker.
+  - Kritéria jsou zatím natvrdo v `criteria.ts` (plán: v DB, editovatelná z UI).
+  - DB klient je `drizzle-orm/neon-http` (každý dotaz = HTTP požadavek, žádné držené spojení) → bez interaktivních transakcí; víc zápisů najednou řešit jedním příkazem nebo `db.batch`.
+  - Balíček se nebuildí (`main` = `src/index.ts`), bundluje ho Nitro. Relativní importy **bez přípony** (`./filter`, ne `./filter.js`).
+- **`apps/web`** – Nuxt 3 s `compatibilityVersion: 4` (frontend v `app/`, API v `server/`).
+  - `server/api/cron/*.post.ts` – vstupní body pro práci na pozadí; každý začíná `requireCronSecret(event)` (`Authorization: Bearer $CRON_SECRET`) a jen volá funkci z `@job-hunter/core`.
+  - `server/utils/` – `useDb()` a `requireCronSecret()` (Nitro auto-import).
+  - `GET /api/jobs?status=…|all` – posledních 100 nabídek z DB (výchozí `matched`).
+  - `nuxt.config.ts` načítá `../../.env.local` a `../../.env` z kořene repa (Nuxt by jinak četl jen `apps/web/.env`).
+  - `nitro-types.d.ts` doplňuje typy nitra pro `nuxt.config` (bez něj `nuxt typecheck` nezná `nitro.vercel`).
 
 Roadmapa je v README.md.
 
-## Cílová architektura (rozhodnuto, zatím neimplementováno)
+## Omezení Vercelu, která musí nový kód respektovat
 
-Vše poběží na **Vercelu (Hobby plán)**. Z toho plynou omezení, která nový kód musí respektovat:
-
-- **Žádný trvale běžící proces.** `apps/worker` s `node-cron` je přechodný stav. Logika (zdroje, filtr, notifikace, pošta) se přesune do `packages/core` a bude se volat z Nuxt endpointů `server/api/cron/search.post.ts` a `server/api/cron/mail.post.ts`, chráněných hlavičkou s `CRON_SECRET`.
-- **Spouštění:** externí plánovač (GitHub Actions `schedule`) volá cron endpointy. Vercel Cron na Hobby plánu běží nejvýš 1× denně, takže ho nepoužívat pro hledání ani poštu.
-- **Databáze: Neon Postgres (Vercel Marketplace) + Drizzle ORM**, ne SQLite. Souborový systém na Vercelu je dočasný. `DATABASE_URL` nastavuje Vercel integrace.
-- **Časový limit funkce:** endpointy musí být idempotentní a zpracovávat po dávkách (hlavně hodnocení přes Claude API). Stav (co už je viděné či ohodnocené) patří do DB, ne do paměti.
+- **Žádný trvale běžící proces** (žádný `node-cron`, `setInterval`, worker). Práce na pozadí = cron endpoint volaný zvenku.
+- **Spouštění:** GitHub Actions `schedule` (zatím nenastaveno) volá cron endpointy. Vercel Cron na Hobby běží nejvýš 1× denně – nepoužívat pro hledání ani poštu.
+- **Žádný lokální souborový stav** (SQLite, soubory, paměť mezi požadavky) – všechno do Postgresu.
+- **Časový limit funkce:** endpointy musí být idempotentní a zpracovávat po dávkách (hlavně hodnocení přes Claude API).
+- Proměnné prostředí se přidávají přes `vercel env add` pro production/preview/development a lokálně stahují `vercel env pull .env.local`. Hodnoty posílat do `vercel env add` přes bash (`printf %s`), ne přes rouru v PowerShellu – ten přidá BOM.
 
 ## Zásady
 
 - Odpovědi na nabídky se **nikdy neodesílají automaticky** – aplikace jen vytvoří koncept (Gmail draft), uživatel ho schválí.
 - Zdroje nabídek přednostně přes RSS/API; scraping jen tam, kde to podmínky webu dovolují.
-- Tajné hodnoty jen v `.env`; Gmail OAuth soubory (`credentials.json`, `token.json`) jsou v `.gitignore`.
+- Tajné hodnoty jen v `.env` / `.env.local` / Vercel env; Gmail OAuth soubory (`credentials.json`, `token.json`) jsou v `.gitignore`. Repo je veřejné.

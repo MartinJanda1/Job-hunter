@@ -8,6 +8,7 @@ const { data: jobs, pending } = await useFetch<Job[]>('/api/jobs')
   <main class="wrap">
     <h1>Job-hunter</h1>
     <p v-if="pending">Načítám…</p>
+    <p v-else-if="!jobs?.length">Zatím žádné vhodné nabídky.</p>
     <ul v-else class="list">
       <li v-for="job in jobs" :key="job.id" class="card">
         <div class="row">

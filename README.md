@@ -7,10 +7,11 @@ Vyhledávač pracovních příležitostí: hledá nabídky podle kritérií, fil
 ```
 apps/
   web/        Nuxt 3 (Vue 3) – přehled nabídek + API (server/api), včetně cron endpointů
-  worker/     dočasně – logika hledání, filtrování, pošty a notifikací (přesune se do packages/core)
 packages/
   shared/     sdílené TypeScript typy (Job, SearchCriteria, …)
-  core/       (plán) logika hledání, filtrování, pošty a notifikací, volaná z cron endpointů
+  core/       logika hledání, filtrování, pošty a notifikací + DB (Drizzle), volaná z cron endpointů
+scripts/
+  cron.mjs    ruční spuštění cron endpointu (npm run cron:search)
 ```
 
 ## Nasazení (Vercel)
@@ -39,24 +40,26 @@ Celá aplikace běží na Vercelu (Hobby plán, tým `janda3`):
 
 ```bash
 npm install
-cp .env.example .env     # a doplnit hodnoty
-npm run dev:web          # http://localhost:3000
-npm run dev:worker       # v druhém terminálu
+vercel env pull .env.local   # DATABASE_URL, CRON_SECRET, … z Vercelu
+cp .env.example .env         # a doplnit ostatní hodnoty (ntfy, Claude, Gmail)
+npm run db:migrate           # aplikuje migrace na databázi
+npm run dev                  # http://localhost:3000
+npm run cron:search          # v druhém terminálu: jeden běh hledání
 ```
 
 ## Plán (roadmap)
 
 - [x] Kostra monorepa, sdílené typy, worker s cronem, ntfy notifikace
 - [x] Rozhodnutí o nasazení: vše na Vercelu (web, cron endpointy, Neon Postgres)
-- [ ] Databáze (Drizzle + Neon Postgres) a ukládání nabídek
-- [ ] Přesun logiky workeru do `packages/core` a endpoint `/api/cron/search`
+- [x] Databáze (Drizzle + Neon Postgres) a ukládání nabídek
+- [x] Přesun logiky workeru do `packages/core` a endpoint `/api/cron/search`
 - [ ] GitHub Actions plánovač volající cron endpointy
-- [ ] První reálné zdroje nabídek (RSS / API portálů)
+- [ ] Další reálné zdroje nabídek (zatím RSS We Work Remotely; české portály přes RSS / API)
 - [ ] Hodnocení shody s CV přes Claude API
 - [ ] Nastavení kritérií ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem
 - [ ] Gmail: třídění příchozí pošty (pohovor / odmítnutí / dotaz)
-- [ ] Nasazení na Vercel
+- [x] Vercel projekt `janda3/job-hunter` propojený s GitHubem (push na `main` = deploy)
 
 ## Zásady
 

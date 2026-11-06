@@ -7,11 +7,18 @@
     "dev": "nuxt dev",
     "build": "nuxt build",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@job-hunter/core": "*",
     "@job-hunter/shared": "*",
+    "drizzle-orm": "^0.45.4",
     "nuxt": "^3.13.0",
     "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vue-tsc": "^3.3.14"
   }
 }
