@@ -49,7 +49,8 @@ export const joobleSource: JobSource = {
         headers: { ...HTTP_HEADERS, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           keywords: criteria.keywords.join(', '),
-          location: '',
+          // Jedna lokalita → hledat rovnou v ní (méně šumu); víc lokalit → celá ČR a vyfiltruje se u nás.
+          location: criteria.locations.length === 1 ? criteria.locations[0] : '',
           page: String(page),
           ResultOnPage: String(PAGE_SIZE),
           ...(since && { datecreatedfrom: since }),

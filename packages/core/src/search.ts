@@ -3,6 +3,7 @@ import type { Db } from './db/client'
 import { sourceState } from './db/schema'
 import { criteria as defaultCriteria } from './criteria'
 import { notifyNewMatches, saveJobs, type NewMatch } from './jobs'
+import { refilterIfCriteriaChanged } from './refilter'
 import { sources } from './sources'
 
 export interface SearchResult {
@@ -10,6 +11,7 @@ export interface SearchResult {
   inserted: number // kolik z nich bylo nových (v DB ještě nebyly)
   matched: number  // kolik nových prošlo filtrem
   errors: string[] // zdroje, které selhaly
+  refiltered?: number // po změně kritérií: kolika uloženým nabídkám se změnil stav
 }
 
 /**
@@ -20,6 +22,10 @@ export interface SearchResult {
 export async function runSearch(db: Db, criteria: SearchCriteria = defaultCriteria): Promise<SearchResult> {
   const result: SearchResult = { found: 0, inserted: 0, matched: 0, errors: [] }
   const newMatches: NewMatch[] = []
+
+  // Změnila se kritéria (criteria.ts)? Přepočítat i dřív uložené nabídky.
+  const refiltered = await refilterIfCriteriaChanged(db, criteria)
+  if (refiltered !== null) result.refiltered = refiltered
 
   const states = new Map<string, SourceState>(
     (await db.select().from(sourceState)).map((r) => [r.source, r.state]),

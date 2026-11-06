@@ -22,6 +22,7 @@ npm run db:generate           # po změně packages/core/src/db/schema.ts → no
 npm run db:migrate            # aplikuje migrace na Neon (přes DATABASE_URL_UNPOOLED)
 npm run db:studio             # Drizzle Studio nad DB
 npm run mail:dryrun [-- linkedin]   # parsery nanečisto nad e-maily v mail_messages (do DB nic nezapisuje)
+npm run filter:dryrun [-- 40]       # jak by aktuální criteria.ts rozdělila uložené nabídky (do DB nic nezapisuje)
 ```
 
 Testy ani linter zatím nejsou nastavené. Migrace se generují a commitují; schéma DB neměnit ručně.
@@ -41,7 +42,8 @@ Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region 
   - `sources/jooble.ts`: český klíč `JOOBLE_API_KEY` platí jen na `cz.jooble.org`; dotazy šetřit (limit klíče možná ~500 celkem) – při ladění nevolat API zbytečně, stav `requests` v `source_state` ukazuje spotřebu.
   - `sources/mpsv.ts` (Úřad práce, ~190 MB JSON): čte se streamem (`stream-json`), nikdy celé do paměti; podmíněný požadavek přes ETag (304 = nic nového); filtr IT podle CZ-ISCO 25xx/35xx. Plný běh ~11 s, bez změny ~1 s.
   - `filter.ts` má druhý krok `scoreAgainstCv` (TODO): CV z `CV_URL` + popis nabídky → Claude vrátí JSON `{ score: 0–100, reason }`.
-  - Kritéria jsou zatím natvrdo v `criteria.ts` (plán: v DB, editovatelná z UI).
+  - Kritéria jsou zatím natvrdo v `criteria.ts` (plán: v DB, editovatelná z UI). Uživatel chce jen zásadní klíčová slova a přidávat je postupně; lokalita jen Praha (remote zdroje tím neprojdou). `filter.ts` porovnává po celých slovech, bez diakritiky a velikosti písmen; lokalita přes aliasy (Prague, Hlavní město Praha…), nabídka bez lokality neprojde.
+  - `refilter.ts`: na začátku `runSearch` se porovná otisk kritérií s uloženým (`source_state` klíč `_criteria`); po změně se přepočítá stav všech nabídek `matched`/`rejected` (ostatní stavy nechá) – bez notifikací. Změnu kritérií nejdřív ověřit `npm run filter:dryrun`.
   - DB klient je `drizzle-orm/neon-http` (každý dotaz = HTTP požadavek, žádné držené spojení) → bez interaktivních transakcí; víc zápisů najednou řešit jedním příkazem nebo `db.batch`.
   - Balíček se nebuildí (`main` = `src/index.ts`), bundluje ho Nitro. Relativní importy **bez přípony** (`./filter`, ne `./filter.js`).
 - **`apps/web`** – Nuxt 3 s `compatibilityVersion: 4` (frontend v `app/`, API v `server/`).
