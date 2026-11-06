@@ -35,9 +35,12 @@ const OVERLAP_SECONDS = 3600
 
 function syncJobAlerts() {
   const props = PropertiesService.getScriptProperties()
-  const appUrl = props.getProperty('APP_URL')
-  const secret = props.getProperty('INGEST_SECRET')
-  if (!appUrl || !secret) throw new Error('Chybí Script Properties APP_URL nebo INGEST_SECRET')
+  const appUrl = (props.getProperty('APP_URL') || '').trim()
+  const secret = (props.getProperty('INGEST_SECRET') || '').trim()
+  if (!appUrl || !secret) {
+    const missing = [!appUrl && 'APP_URL', !secret && 'INGEST_SECRET'].filter(Boolean).join(', ')
+    throw new Error(`Chybí Script Properties: ${missing}. Skript vidí: ${describeProperties()}`)
+  }
 
   const startedAt = Math.floor(Date.now() / 1000)
   const lastSync = Number(props.getProperty('LAST_SYNC') || 0)
@@ -107,6 +110,19 @@ function toBatches(messages, maxBytes) {
 
 function truncate(html, maxBytes) {
   return html.length > maxBytes ? html.slice(0, maxBytes) : html
+}
+
+/** Diagnostika: názvy Script Properties a délky hodnot (hodnoty samotné se nevypisují). */
+function describeProperties() {
+  const all = PropertiesService.getScriptProperties().getProperties()
+  const keys = Object.keys(all)
+  if (!keys.length) return '(žádné vlastnosti – uložil jsi je tlačítkem „Save script properties“?)'
+  return keys.map((k) => `${JSON.stringify(k)} (délka hodnoty ${all[k].length})`).join(', ')
+}
+
+/** Spusť ručně, když syncJobAlerts hlásí chybějící vlastnosti. */
+function checkSetup() {
+  console.log(`Script Properties: ${describeProperties()}`)
 }
 
 /** Jednorázově: hodinový trigger pro syncJobAlerts (staré triggery této funkce smaže, ať nejsou dvakrát). */
