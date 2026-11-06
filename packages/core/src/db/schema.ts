@@ -31,5 +31,26 @@ export const jobs = pgTable(
   (t) => [index('jobs_status_found_at_idx').on(t.status, t.foundAt)],
 )
 
+/**
+ * E-maily od portálů (hlídači nabídek), které posílá Google Apps Script z Gmailu.
+ * Ukládají se surové; parser podle odesílatele z nich vytáhne nabídky (`parsedAt` = zpracováno).
+ * Díky uloženému HTML jde parser opravit a e-maily zpracovat znovu.
+ */
+export const mailMessages = pgTable(
+  'mail_messages',
+  {
+    id: text('id').primaryKey(), // Gmail message ID
+    fromAddr: text('from_addr').notNull(),
+    subject: text('subject').notNull(),
+    receivedAt: timestamp('received_at', { withTimezone: true }).notNull(),
+    html: text('html').notNull(),
+    ingestedAt: timestamp('ingested_at', { withTimezone: true }).notNull().defaultNow(),
+    parsedAt: timestamp('parsed_at', { withTimezone: true }),
+    parser: text('parser'),
+    jobsFound: integer('jobs_found'),
+  },
+  (t) => [index('mail_messages_parsed_at_idx').on(t.parsedAt)],
+)
+
 export type JobRow = typeof jobs.$inferSelect
 export type NewJobRow = typeof jobs.$inferInsert

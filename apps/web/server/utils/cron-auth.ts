@@ -1,10 +1,10 @@
 import { timingSafeEqual } from 'node:crypto'
 import type { H3Event } from 'h3'
 
-/** Cron endpointy smí volat jen plánovač s hlavičkou `Authorization: Bearer $CRON_SECRET`. */
-export function requireCronSecret(event: H3Event): void {
-  const secret = process.env.CRON_SECRET
-  if (!secret) throw createError({ statusCode: 500, statusMessage: 'CRON_SECRET není nastaven' })
+/** Ověří hlavičku `Authorization: Bearer <hodnota proměnné envName>`; jinak 401. */
+export function requireBearer(event: H3Event, envName: 'CRON_SECRET' | 'INGEST_SECRET'): void {
+  const secret = process.env[envName]
+  if (!secret) throw createError({ statusCode: 500, statusMessage: `${envName} není nastaven` })
 
   const given = Buffer.from(getHeader(event, 'authorization') ?? '')
   const expected = Buffer.from(`Bearer ${secret}`)
@@ -12,3 +12,6 @@ export function requireCronSecret(event: H3Event): void {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
   }
 }
+
+/** Cron endpointy smí volat jen plánovač (GitHub Actions) s CRON_SECRET. */
+export const requireCronSecret = (event: H3Event) => requireBearer(event, 'CRON_SECRET')

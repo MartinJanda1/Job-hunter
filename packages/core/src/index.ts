@@ -1,6 +1,6 @@
 export { createDb, rowToJob, type Db } from './db/client'
 export * as schema from './db/schema'
 export { runSearch, type SearchResult } from './search'
-export { checkInbox } from './mail/gmail'
+export { ingestMails, validateMails, type IncomingMail, type IngestResult } from './mail/ingest'
 export { notify } from './notify/ntfy'
 export { criteria } from './criteria'

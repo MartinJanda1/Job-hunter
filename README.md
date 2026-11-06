@@ -56,7 +56,8 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] GitHub Actions plánovač volající cron endpointy (`.github/workflows/cron.yml`, každé 2 h)
 - [x] Průzkum zdrojů nabídek – viz [docs/zdroje.md](docs/zdroje.md)
 - [x] Úřad práce ČR (otevřená data MPSV) – IT nabídky z celé ČR
-- [ ] E-mailoví hlídači portálů (Jobs.cz, Prace.cz, StartupJobs, LinkedIn…) přes Gmail
+- [x] Příjem e-mailů z hlídačů portálů: Google Apps Script → `/api/ingest/mail` (návod: [docs/gmail-hlidace.md](docs/gmail-hlidace.md))
+- [ ] Parsery e-mailů jednotlivých portálů (Jobs.cz, Prace.cz, StartupJobs, LinkedIn, annonce.cz…) – podle skutečných e-mailů
 - [x] Remote portály s API (Remotive, Remote OK)
 - [ ] Jooble API (čeká na API klíč)
 - [ ] Hodnocení shody s CV přes Claude API

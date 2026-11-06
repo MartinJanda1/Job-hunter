@@ -30,7 +30,8 @@ Testy ani linter zatím nejsou nastavené. Migrace se generují a commitují; sc
 Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region `fra1`, vedle DB), DB = **Neon Postgres** (Vercel Marketplace, resource `job-hunter-db`). Root directory projektu na Vercelu je `apps/web`; push na `main` = produkční deploy.
 
 - **`packages/shared`** – TypeScript typy (`Job`, `RawJob`, `JobSource`, `SearchCriteria`, …) a konstanty bez závislostí (`SOURCE_LABELS`), použitelné i v prohlížeči. Změny datového modelu začínají tady (a v `db/schema.ts`). UI nesmí importovat `@job-hunter/core` (stáhlo by DB klienta a Node streamy do klienta).
-- **`packages/core`** – veškerá doménová logika, bez závislosti na Nuxtu: zdroje nabídek (`sources/`), filtr (`filter.ts`), notifikace (`notify/ntfy.ts`), Gmail (`mail/gmail.ts`, zatím stub), DB (`db/schema.ts`, `db/client.ts`) a `runSearch(db)` v `search.ts`.
+- **`packages/core`** – veškerá doménová logika, bez závislosti na Nuxtu: zdroje nabídek (`sources/`), filtr (`filter.ts`), uložení + notifikace nabídek (`jobs.ts`: `saveJobs`, `notifyNewMatches` – sdílí je hledání i pošta), notifikace (`notify/ntfy.ts`), pošta (`mail/`), DB (`db/schema.ts`, `db/client.ts`) a `runSearch(db)` v `search.ts`.
+  - **Pošta (hlídači portálů):** Google Apps Script v Gmailu uživatele (`apps-script/Code.gs`, návod `docs/gmail-hlidace.md`) každou hodinu pošle e-maily od portálů na `POST /api/ingest/mail` (`INGEST_SECRET`). `ingestMails` je uloží surové do `mail_messages` a zpracuje všechny nezpracované, pro které existuje parser v `mail/parsers.ts` (podle odesílatele). Bez parseru zůstávají `parsed_at = null` a zpracují se, až parser přibude. Parsery psát jen podle skutečných e-mailů v `mail_messages`, ne podle odhadu. Žádný Gmail OAuth – Apps Script běží pod účtem uživatele.
   - Pipeline hledání: každý `JobSource` → `fetchJobs(criteria, prevState)` → `passesHardFilter` (klíčová slova, bez AI) → stav `matched`/`rejected` → `INSERT … ON CONFLICT DO NOTHING RETURNING` po dávkách 500 → notifikace jen pro skutečně nově vložené `matched` (víc než 3 = jedna souhrnná). Selhání jednoho zdroje neshodí ostatní (`errors` ve výsledku).
   - Ukládají se i `rejected` nabídky, aby se při dalším běhu znovu nehodnotily. Deduplikace = primární klíč `id` ve tvaru `${source}:${externalId}`.
   - Nový zdroj = adaptér implementující `JobSource` (vrací `{ jobs, state? }`), přidaný do pole v `sources/index.ts`. `state` (např. ETag) se uloží do tabulky `source_state` až po úspěšném uložení nabídek a příště přijde jako `prevState`. Prověřené a zakázané zdroje jsou v [docs/zdroje.md](docs/zdroje.md) – nový zdroj jen s oficiálním přístupem.
@@ -42,7 +43,8 @@ Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region 
   - Balíček se nebuildí (`main` = `src/index.ts`), bundluje ho Nitro. Relativní importy **bez přípony** (`./filter`, ne `./filter.js`).
 - **`apps/web`** – Nuxt 3 s `compatibilityVersion: 4` (frontend v `app/`, API v `server/`).
   - `server/api/cron/*.post.ts` – vstupní body pro práci na pozadí; každý začíná `requireCronSecret(event)` (`Authorization: Bearer $CRON_SECRET`) a jen volá funkci z `@job-hunter/core`.
-  - `server/utils/` – `useDb()` a `requireCronSecret()` (Nitro auto-import).
+  - `server/api/ingest/mail.post.ts` – příjem e-mailů z Apps Scriptu, `requireBearer(event, 'INGEST_SECRET')`. Vercel přijme tělo max. 4,5 MB (skript posílá dávky ≤ 3 MB).
+  - `server/utils/` – `useDb()`, `requireBearer()` / `requireCronSecret()` (Nitro auto-import).
   - `GET /api/jobs?status=…|all` – posledních 100 nabídek z DB (výchozí `matched`).
   - `nuxt.config.ts` načítá `../../.env.local` a `../../.env` z kořene repa (Nuxt by jinak četl jen `apps/web/.env`).
   - `nitro-types.d.ts` doplňuje typy nitra pro `nuxt.config` (bez něj `nuxt typecheck` nezná `nitro.vercel`).
