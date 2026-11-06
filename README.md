@@ -6,19 +6,31 @@ Vyhledávač pracovních příležitostí: hledá nabídky podle kritérií, fil
 
 ```
 apps/
-  web/        Nuxt 3 (Vue 3) – přehled nabídek + API (server/api)
-  worker/     Node.js proces na pozadí – hledání, filtrování, pošta, notifikace
+  web/        Nuxt 3 (Vue 3) – přehled nabídek + API (server/api), včetně cron endpointů
+  worker/     dočasně – logika hledání, filtrování, pošty a notifikací (přesune se do packages/core)
 packages/
   shared/     sdílené TypeScript typy (Job, SearchCriteria, …)
+  core/       (plán) logika hledání, filtrování, pošty a notifikací, volaná z cron endpointů
 ```
+
+## Nasazení (Vercel)
+
+Celá aplikace běží na Vercelu (Hobby plán, tým `janda3`):
+
+- **Web + API** – Nuxt jako serverless funkce.
+- **Databáze** – Neon Postgres připojený přes Vercel Marketplace (`DATABASE_URL` nastaví Vercel).
+- **Práce na pozadí** – žádný trvale běžící proces. Hledání a kontrola pošty jsou API endpointy
+  (`/api/cron/search`, `/api/cron/mail`) chráněné tokenem `CRON_SECRET`. Volá je externí plánovač
+  (GitHub Actions `schedule`), protože Vercel Cron na Hobby plánu běží nejvýš 1× denně.
+- Jeden běh funkce má časový limit → nabídky (hlavně hodnocení přes Claude API) zpracovávat po dávkách.
 
 ## Technologie
 
 | Část | Volba | Proč |
 |---|---|---|
 | Frontend + API | Nuxt 3 (Vue 3, TypeScript) | Vue už znám, API routy jsou ve stejném projektu |
-| Práce na pozadí | Node.js + node-cron | pravidelné hledání a kontrola pošty |
-| Databáze | SQLite → později PostgreSQL | jednoduchý start |
+| Práce na pozadí | cron endpointy v Nuxtu + GitHub Actions | Vercel nemá trvale běžící procesy |
+| Databáze | Neon Postgres + Drizzle ORM | SQLite na Vercelu nejde (dočasný souborový systém) |
 | Hodnocení shody | Claude API | porovnání nabídky s CV |
 | Pošta | Gmail API (OAuth2) | koncepty odpovědí, třídění příchozích |
 | Notifikace | ntfy.sh | jeden HTTP požadavek, appka pro Android/iOS |
@@ -35,13 +47,16 @@ npm run dev:worker       # v druhém terminálu
 ## Plán (roadmap)
 
 - [x] Kostra monorepa, sdílené typy, worker s cronem, ntfy notifikace
-- [ ] Databáze (Drizzle + SQLite) a ukládání nabídek z workeru
+- [x] Rozhodnutí o nasazení: vše na Vercelu (web, cron endpointy, Neon Postgres)
+- [ ] Databáze (Drizzle + Neon Postgres) a ukládání nabídek
+- [ ] Přesun logiky workeru do `packages/core` a endpoint `/api/cron/search`
+- [ ] GitHub Actions plánovač volající cron endpointy
 - [ ] První reálné zdroje nabídek (RSS / API portálů)
 - [ ] Hodnocení shody s CV přes Claude API
 - [ ] Nastavení kritérií ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem
 - [ ] Gmail: třídění příchozí pošty (pohovor / odmítnutí / dotaz)
-- [ ] Nasazení: web na Vercel, worker na Railway / Fly.io
+- [ ] Nasazení na Vercel
 
 ## Zásady
 
