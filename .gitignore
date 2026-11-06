@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# Nuxt
+.nuxt/
+.output/
+.data/
+
+# build
+dist/
+
+# Gmail OAuth tokeny – nikdy necommitovat
+credentials.json
+token.json
+
+# OS / editor
+.DS_Store
+*.log

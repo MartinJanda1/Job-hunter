@@ -1,0 +1,20 @@
+{
+  "name": "job-hunter",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Vyhledávač pracovních příležitostí – hledání, filtrování, odpovědi, pošta a notifikace",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "dev:worker": "npm run dev -w apps/worker",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
