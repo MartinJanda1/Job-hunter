@@ -53,7 +53,7 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Rozhodnutí o nasazení: vše na Vercelu (web, cron endpointy, Neon Postgres)
 - [x] Databáze (Drizzle + Neon Postgres) a ukládání nabídek
 - [x] Přesun logiky workeru do `packages/core` a endpoint `/api/cron/search`
-- [ ] GitHub Actions plánovač volající cron endpointy
+- [x] GitHub Actions plánovač volající cron endpointy (`.github/workflows/cron.yml`, každé 2 h)
 - [ ] Další reálné zdroje nabídek (zatím RSS We Work Remotely; české portály přes RSS / API)
 - [ ] Hodnocení shody s CV přes Claude API
 - [ ] Nastavení kritérií ve webovém UI

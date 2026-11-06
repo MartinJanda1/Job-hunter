@@ -50,7 +50,7 @@ Roadmapa je v README.md.
 ## Omezení Vercelu, která musí nový kód respektovat
 
 - **Žádný trvale běžící proces** (žádný `node-cron`, `setInterval`, worker). Práce na pozadí = cron endpoint volaný zvenku.
-- **Spouštění:** GitHub Actions `schedule` (zatím nenastaveno) volá cron endpointy. Vercel Cron na Hobby běží nejvýš 1× denně – nepoužívat pro hledání ani poštu.
+- **Spouštění:** `.github/workflows/cron.yml` (GitHub Actions `schedule`, UTC, + ruční `workflow_dispatch`) volá cron endpointy s repo secretem `CRON_SECRET` a variable `APP_URL`. Nový cron endpoint = nový job v tomto workflow. Při změně `CRON_SECRET` ho aktualizovat ve Vercel env i v GitHub secrets. Vercel Cron na Hobby běží nejvýš 1× denně – nepoužívat pro hledání ani poštu.
 - **Žádný lokální souborový stav** (SQLite, soubory, paměť mezi požadavky) – všechno do Postgresu.
 - **Časový limit funkce:** endpointy musí být idempotentní a zpracovávat po dávkách (hlavně hodnocení přes Claude API).
 - Proměnné prostředí se přidávají přes `vercel env add` pro production/preview/development a lokálně stahují `vercel env pull .env.local`. Hodnoty posílat do `vercel env add` přes bash (`printf %s`), ne přes rouru v PowerShellu – ten přidá BOM.
