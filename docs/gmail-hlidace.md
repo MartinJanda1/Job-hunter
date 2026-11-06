@@ -30,6 +30,8 @@ Pak běží sám každou hodinu (*Triggers* v levém menu).
 
 Nové e-maily se ukládají do tabulky `mail_messages`. Dokud pro portál není parser (`packages/core/src/mail/parsers.ts`), zůstávají ve stavu `pending`. Parsery vznikají podle skutečných e-mailů – po přidání parseru se čekající e-maily zpracují samy při dalším hodinovém běhu.
 
+Hotové parsery: **Jobs.cz**, **LinkedIn**. Nový parser se ověří nanečisto: `npm run mail:dryrun -- <část adresy odesílatele>`.
+
 ## Změna INGEST_SECRET
 
 Nová hodnota musí být ve Vercel env (`vercel env add INGEST_SECRET …`) i ve Script Properties Apps Scriptu.
