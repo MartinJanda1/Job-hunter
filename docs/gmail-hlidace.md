@@ -6,7 +6,7 @@ Velké portály (Jobs.cz, Prace.cz, StartupJobs, LinkedIn, Indeed, annonce.cz…
 portál ──e-mail──▶ Gmail ──Apps Script (1×/h)──▶ POST /api/ingest/mail ──▶ mail_messages ──parser──▶ jobs
 ```
 
-Skript Gmail jen čte – nic neoznačuje, nemaže ani neodesílá.
+Synchronizace Gmail jen čte. Volitelné třídění (`setupMailFolder`, níže) založí štítek a Gmail filtr – nic nemaže ani neodesílá.
 
 ## 1. Hlídači na portálech
 
@@ -26,7 +26,19 @@ Když přidáš portál, který není v seznamu `SENDERS` v `apps-script/Code.gs
 
 Pak běží sám každou hodinu (*Triggers* v levém menu).
 
-## 3. Parsery
+## 3. Třídění pošty (štítek místo Doručené pošty)
+
+E-maily od portálů se zařadí pod štítek **Job-hunter/Hlídače** a do Doručené pošty nepřijdou. Třídí je přímo Gmail filtrem hned při doručení; aplikace je dál dostává (Apps Script hledá v celé poště, nejen v Doručené).
+
+1. V editoru Apps Scriptu vlevo **Services (+)** → najdi **Gmail API** → **Add** (potřeba pro vytvoření filtru).
+2. Vyber funkci **`setupMailFolder`** → **Run** a povol nová oprávnění (správa nastavení Gmailu / filtrů).
+3. V logu uvidíš vytvořený filtr a kolik konverzací se přesunulo z Doručené pošty.
+
+Filtr pak najdeš v Gmailu: ⚙️ → *Zobrazit všechna nastavení* → *Filtry a blokované adresy*. Po změně `SENDERS` spusť `setupMailFolder` znovu – starý filtr nahradí.
+
+**Pozor:** filtr bere celé domény portálů (např. `indeed.com`, `startupjobs.cz`). Pokud ti přes portál odpoví firma (pozvánka na pohovor), přijde to taky pod štítek, ne do Doručené pošty. Nic se nemaže – jen to hledej pod štítkem. Až budou známé adresy, ze kterých chodí jen hlídače, dá se filtr zúžit.
+
+## 4. Parsery
 
 Nové e-maily se ukládají do tabulky `mail_messages`. Dokud pro portál není parser (`packages/core/src/mail/parsers.ts`), zůstávají ve stavu `pending`. Parsery vznikají podle skutečných e-mailů – po přidání parseru se čekající e-maily zpracují samy při dalším hodinovém běhu.
 
