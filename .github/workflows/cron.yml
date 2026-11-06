@@ -1,0 +1,39 @@
+# Plánovač: Vercel na Hobby plánu nemá trvale běžící procesy a jeho Cron běží nejvýš 1× denně,
+# proto cron endpointy aplikace volá GitHub Actions.
+#
+# Potřebuje v repozitáři (Settings → Secrets and variables → Actions):
+#   secret   CRON_SECRET – stejná hodnota jako ve Vercel env
+#   variable APP_URL     – produkční URL, např. https://job-hunter-six-kappa.vercel.app
+#
+# Pozn.: GitHub spouští `schedule` s možným zpožděním (minuty, ve špičce i víc) a časy jsou v UTC.
+# U veřejného repa bez aktivity 60 dní se plánované workflow samo vypne.
+name: cron
+
+on:
+  schedule:
+    - cron: '7 */2 * * *' # hledání nabídek každé 2 hodiny (minuta 7 – mimo špičku na celé hodině)
+  workflow_dispatch:       # ruční spuštění z GitHubu: Actions → cron → Run workflow
+
+concurrency:
+  group: cron-search
+  cancel-in-progress: false
+
+jobs:
+  search:
+    # Forky repozitáře nemají secret a neměly by volat produkci.
+    if: github.repository == 'MartinJanda1/Job-hunter'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: POST /api/cron/search
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          test -n "$CRON_SECRET" || { echo "::error::Chybí secret CRON_SECRET"; exit 1; }
+          test -n "$APP_URL" || { echo "::error::Chybí variable APP_URL"; exit 1; }
+          curl --fail-with-body --silent --show-error \
+            --retry 2 --retry-delay 30 --retry-all-errors \
+            --max-time 300 \
+            -X POST -H "Authorization: Bearer $CRON_SECRET" \
+            "$APP_URL/api/cron/search"
