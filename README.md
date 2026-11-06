@@ -60,7 +60,7 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Parsery e-mailů: Jobs.cz, LinkedIn
 - [ ] Parsery dalších portálů (Prace.cz, StartupJobs, Indeed, annonce.cz…) – až od nich přijdou e-maily
 - [x] Remote portály s API (Remotive, Remote OK)
-- [ ] Jooble API (čeká na API klíč)
+- [x] Jooble API (agregátor – CZ klíč, 1× denně)
 - [ ] Hodnocení shody s CV přes Claude API
 - [ ] Nastavení kritérií ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem

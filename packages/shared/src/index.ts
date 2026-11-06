@@ -65,6 +65,7 @@ export const SOURCE_LABELS: Record<string, string> = {
   remotive: 'Remotive',
   remoteok: 'Remote OK',
   rss: 'We Work Remotely',
+  jooble: 'Jooble',
   jobscz: 'Jobs.cz (hlídač)',
   linkedin: 'LinkedIn (hlídač)',
 }

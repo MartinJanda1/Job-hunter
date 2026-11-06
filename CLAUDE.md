@@ -38,6 +38,7 @@ Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region 
   - Ukládají se i `rejected` nabídky, aby se při dalším běhu znovu nehodnotily. Deduplikace = primární klíč `id` ve tvaru `${source}:${externalId}`.
   - Nový zdroj = adaptér implementující `JobSource` (vrací `{ jobs, state? }`), přidaný do pole v `sources/index.ts`. `state` (např. ETag) se uloží do tabulky `source_state` až po úspěšném uložení nabídek a příště přijde jako `prevState`. Prověřené a zakázané zdroje jsou v [docs/zdroje.md](docs/zdroje.md) – nový zdroj jen s oficiálním přístupem.
   - Podmínky API zdrojů jsou závazné (viz docs/zdroje.md): Remotive a Remote OK vyžadují odkaz na jejich URL nabídky a uvedení zdroje (UI ukazuje `zdroj: …` z `SOURCE_LABELS`) a málo dotazů za den – `isThrottled(prevState, hodiny)` + `fetchedNow()` v `sources/util.ts`.
+  - `sources/jooble.ts`: český klíč `JOOBLE_API_KEY` platí jen na `cz.jooble.org`; dotazy šetřit (limit klíče možná ~500 celkem) – při ladění nevolat API zbytečně, stav `requests` v `source_state` ukazuje spotřebu.
   - `sources/mpsv.ts` (Úřad práce, ~190 MB JSON): čte se streamem (`stream-json`), nikdy celé do paměti; podmíněný požadavek přes ETag (304 = nic nového); filtr IT podle CZ-ISCO 25xx/35xx. Plný běh ~11 s, bez změny ~1 s.
   - `filter.ts` má druhý krok `scoreAgainstCv` (TODO): CV z `CV_URL` + popis nabídky → Claude vrátí JSON `{ score: 0–100, reason }`.
   - Kritéria jsou zatím natvrdo v `criteria.ts` (plán: v DB, editovatelná z UI).
