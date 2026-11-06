@@ -132,10 +132,14 @@ function setupMailFolder() {
   }
 
   const label = GmailApp.getUserLabelByName(LABEL_NAME) || GmailApp.createLabel(LABEL_NAME)
-  const labelId = Gmail.Users.Labels.list('me').labels.find((l) => l.name === LABEL_NAME).id
+  const labels = (Gmail.Users.Labels.list('me') || {}).labels || []
+  const gmailLabel = labels.find((l) => l.name === LABEL_NAME)
+  if (!gmailLabel) throw new Error(`Štítek „${LABEL_NAME}“ se nepodařilo najít přes Gmail API – spusť funkci znovu.`)
+  const labelId = gmailLabel.id
 
   // Starý filtr tohoto skriptu (se stejným štítkem) smazat, ať po změně SENDERS nejsou dva.
-  const existing = Gmail.Users.Settings.Filters.list('me').filter || []
+  // Bez existujících filtrů vrací Gmail API null místo prázdného seznamu.
+  const existing = (Gmail.Users.Settings.Filters.list('me') || {}).filter || []
   for (const f of existing) {
     if ((f.action && f.action.addLabelIds || []).includes(labelId)) Gmail.Users.Settings.Filters.remove('me', f.id)
   }
