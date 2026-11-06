@@ -38,10 +38,22 @@ export interface Job {
   status: JobStatus
 }
 
+/** Nabídka tak, jak ji vrací zdroj – bez polí, která doplní pipeline */
+export type RawJob = Omit<Job, 'foundAt' | 'status'>
+
+/** Libovolný stav zdroje mezi běhy (např. ETag), ukládá se do DB */
+export type SourceState = Record<string, string>
+
+export interface FetchResult {
+  jobs: RawJob[]
+  /** Nový stav k uložení – jen po úspěšném zpracování všech nabídek */
+  state?: SourceState
+}
+
 /** Rozhraní, které implementuje každý zdroj nabídek */
 export interface JobSource {
   name: string
-  fetchJobs(criteria: SearchCriteria): Promise<Omit<Job, 'foundAt' | 'status'>[]>
+  fetchJobs(criteria: SearchCriteria, prevState?: SourceState): Promise<FetchResult>
 }
 
 /** Kategorie příchozí pošty */

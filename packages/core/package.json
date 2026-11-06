@@ -15,7 +15,9 @@
     "@job-hunter/shared": "*",
     "@neondatabase/serverless": "^1.2.0",
     "drizzle-orm": "^0.45.4",
-    "rss-parser": "^3.13.0"
+    "rss-parser": "^3.13.0",
+    "stream-chain": "^4.4.1",
+    "stream-json": "^3.8.0"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

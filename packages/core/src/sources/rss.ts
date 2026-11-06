@@ -1,5 +1,5 @@
 import Parser from 'rss-parser'
-import type { JobSource } from '@job-hunter/shared'
+import type { JobSource, RawJob } from '@job-hunter/shared'
 
 /**
  * Ukázkový zdroj: obecná RSS feed s nabídkami.
@@ -18,7 +18,7 @@ const parser = new Parser({ timeout: 15_000 })
 export const rssSource: JobSource = {
   name: 'rss',
   async fetchJobs() {
-    const results = []
+    const results: RawJob[] = []
     for (const feedUrl of FEEDS) {
       try {
         const feed = await parser.parseURL(feedUrl)
@@ -38,6 +38,6 @@ export const rssSource: JobSource = {
         console.error(`[rss] Nepodařilo se načíst ${feedUrl}:`, err)
       }
     }
-    return results
+    return { jobs: results }
   },
 }

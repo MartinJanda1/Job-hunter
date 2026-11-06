@@ -1,5 +1,12 @@
-import { boolean, index, integer, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import type { JobStatus } from '@job-hunter/shared'
+import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import type { JobStatus, SourceState } from '@job-hunter/shared'
+
+/** Stav zdroje mezi běhy (např. ETag datové sady MPSV) */
+export const sourceState = pgTable('source_state', {
+  source: text('source').primaryKey(),
+  state: jsonb('state').$type<SourceState>().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
 
 /** Nalezené nabídky. Ukládají se i vyřazené (`rejected`), aby se při dalším hledání nehodnotily znovu. */
 export const jobs = pgTable(

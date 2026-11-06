@@ -15,6 +15,7 @@ export default defineNuxtConfig({
   },
   nitro: {
     // Funkce ve Frankfurtu vedle databáze Neon (fra1); výchozí iad1 by každý dotaz posílal přes oceán.
-    vercel: { functions: { regions: ['fra1'] } },
+    // maxDuration 300 s (strop Hobby plánu) – zpracování datové sady MPSV (~190 MB streamem) trvá desítky sekund.
+    vercel: { functions: { regions: ['fra1'], maxDuration: 300 } },
   },
 })

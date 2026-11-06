@@ -54,7 +54,10 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Databáze (Drizzle + Neon Postgres) a ukládání nabídek
 - [x] Přesun logiky workeru do `packages/core` a endpoint `/api/cron/search`
 - [x] GitHub Actions plánovač volající cron endpointy (`.github/workflows/cron.yml`, každé 2 h)
-- [ ] Další reálné zdroje nabídek (zatím RSS We Work Remotely; české portály přes RSS / API)
+- [x] Průzkum zdrojů nabídek – viz [docs/zdroje.md](docs/zdroje.md)
+- [x] Úřad práce ČR (otevřená data MPSV) – IT nabídky z celé ČR
+- [ ] E-mailoví hlídači portálů (Jobs.cz, Prace.cz, StartupJobs, LinkedIn…) přes Gmail
+- [ ] Remote portály s API (Remotive, RemoteOK), Jooble API
 - [ ] Hodnocení shody s CV přes Claude API
 - [ ] Nastavení kritérií ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem
