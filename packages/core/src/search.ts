@@ -4,6 +4,7 @@ import { sourceState } from './db/schema'
 import { loadCriteria } from './criteria'
 import { notifyNewMatches, saveJobs, type NewMatch } from './jobs'
 import { refilterIfCriteriaChanged } from './refilter'
+import { syncDedupeKeys } from './dedupe'
 import { sources } from './sources'
 
 export interface SearchResult {
@@ -23,6 +24,9 @@ export async function runSearch(db: Db, criteriaOverride?: SearchCriteria): Prom
   const result: SearchResult = { found: 0, inserted: 0, matched: 0, errors: [] }
   const newMatches: NewMatch[] = []
   const criteria = criteriaOverride ?? (await loadCriteria(db))
+
+  // Klíče skupin duplicit: doplnit chybějící, po změně DEDUPE_VERSION přepočítat všechny.
+  await syncDedupeKeys(db)
 
   // Změnila se kritéria (klíčová slova v DB, lokalita v kódu)? Přepočítat i dřív uložené nabídky.
   const refiltered = await refilterIfCriteriaChanged(db, criteria)

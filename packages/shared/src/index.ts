@@ -60,6 +60,8 @@ export interface JobListItem extends Omit<Job, 'description'> {
   titleParts: TextPart[]
   /** Úryvek popisu kolem prvního nalezeného slova */
   excerpt?: TextPart[]
+  /** Duplicity – stejný inzerát z dalších zdrojů nebo opakovaně zadaný (karta ukazuje jen tuto nabídku) */
+  others: { id: string; source: string; url: string }[]
 }
 
 /** GET /api/jobs?view=… */

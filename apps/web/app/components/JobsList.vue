@@ -24,6 +24,13 @@ const ACTIONS: { mark: JobMark; icon: string; label: string }[] = [
 const meta = (job: JobListItem) =>
   [job.company, job.location, job.salaryText, `zdroj: ${SOURCE_LABELS[job.source] ?? job.source}`].filter(Boolean).join(' · ')
 
+/** Duplicity seskupené podle zdroje: [{ label, urls }] */
+const othersBySource = (job: JobListItem) => {
+  const map = new Map<string, string[]>()
+  for (const o of job.others) map.set(o.source, [...(map.get(o.source) ?? []), o.url])
+  return [...map.entries()].map(([source, urls]) => ({ label: SOURCE_LABELS[source] ?? source, urls }))
+}
+
 /** Poslední akce pro „Zpět“ */
 const last = ref<{ job: JobListItem; prev: JobMark | null; label: string } | null>(null)
 const failed = ref('')
@@ -106,6 +113,15 @@ watch(view, () => (last.value = null))
           <span v-for="k in job.keywords" :key="k" class="chip">{{ k }}</span>
         </div>
         <p v-if="job.excerpt" class="excerpt"><HighlightText :parts="job.excerpt" /></p>
+        <p v-if="job.others.length" class="others">
+          Také na:
+          <span v-for="(g, gi) in othersBySource(job)" :key="g.label">
+            <template v-if="g.urls.length === 1"><a :href="g.urls[0]" target="_blank" rel="noopener">{{ g.label }}</a></template>
+            <template v-else>{{ g.label }}:
+              <template v-for="(u, ui) in g.urls" :key="u"><a :href="u" target="_blank" rel="noopener">{{ ui + 1 }}</a><template v-if="ui < g.urls.length - 1"> · </template></template>
+            </template><template v-if="gi < othersBySource(job).length - 1">, </template>
+          </span>
+        </p>
       </li>
     </ul>
   </section>
@@ -137,4 +153,5 @@ watch(view, () => (last.value = null))
 .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
 .chip { font-size: 12px; background: #fff1a8; border-radius: 999px; padding: 1px 8px; }
 .excerpt { font-size: 14px; color: #3b4048; margin: 8px 0 0; line-height: 1.45; }
+.others { font-size: 13px; color: #5b616b; margin: 8px 0 0; }
 </style>

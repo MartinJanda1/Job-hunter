@@ -23,6 +23,7 @@ npm run db:migrate            # aplikuje migrace na Neon (přes DATABASE_URL_UNP
 npm run db:studio             # Drizzle Studio nad DB
 npm run mail:dryrun [-- linkedin]   # parsery nanečisto nad e-maily v mail_messages (do DB nic nezapisuje)
 npm run filter:dryrun [-- vue react]  # jak by kritéria (z DB, nebo zadaná slova) rozdělila uložené nabídky (do DB nic nezapisuje)
+npm run dedupe:dryrun [-- 30]         # skupiny duplicit podle aktuální normalizace (do DB nic nezapisuje)
 ```
 
 Testy ani linter zatím nejsou nastavené. Migrace se generují a commitují; schéma DB neměnit ručně.
@@ -52,6 +53,7 @@ Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region 
   - `server/utils/` – `useDb()`, `requireBearer()` / `requireCronSecret()`, přihlášení `session.ts` (Nitro auto-import).
   - **Přihlášení:** celá aplikace je za heslem (`server/middleware/auth.ts`); výjimky jen `/login`, `/api/auth/*`, `/api/cron/*`, `/api/ingest/*` (vlastní tokeny) a statické soubory. Jedno heslo `APP_PASSWORD`, cookie `jh_session` = expirace + HMAC (`SESSION_SECRET`), 30 dní, bez DB. Změna `SESSION_SECRET` odhlásí všechna zařízení. Nový veřejný endpoint = výslovně ho přidat do `PUBLIC_PREFIXES`. Vercel Deployment Protection na Hobby produkci nechrání, proto vlastní řešení.
   - `GET /api/jobs?view=inbox|starred|applied|hidden` – `JobsResponse` (max. 200 nabídek + počty záložek). Nabídky jsou `JobListItem`: bez celého popisu, s `keywords` (která zapnutá slova obsahují), `titleParts` a `excerpt` jako `TextPart[]` (zvýraznění počítá server v `core/src/highlight.ts` stejnou logikou jako filtr – celá slova, bez diakritiky, s mapou pozic na původní text). UI zvýraznění vykresluje přes `HighlightText.vue` **bez v-html** (text z inzerátů nikdy jako HTML).
+  - **Duplicity** (`core/src/dedupe.ts`): `jobs.dedupe_key` = normalizovaný název (bez m/ž, „@ Firma“) + firma (bez s.r.o., a.s., odštěpný závod, Czech Republic…); bez firmy unikátní `id:<id>`. Seznam ukazuje jednu kartu za skupinu (hlavní = nejvíc informací, přímý zdroj před Jooble) s `others` („Také na“); počty záložek počítají skupiny; označení se ukládá a dědí v celé skupině (`propagateMarks`); notifikace jen pro novou skupinu. Klíče doplňuje/přepočítává `syncDedupeKeys` na začátku `runSearch` – **po změně normalizace zvýšit `DEDUPE_VERSION`** a ověřit `npm run dedupe:dryrun`.
   - **Označování:** sloupec `jobs.mark` (`starred` | `applied` | `hidden` | null) + `marked_at`, `PATCH /api/jobs/:id { mark }`. Je nezávislý na `status` (ten řídí filtr a refilter ho přepisuje). Záložka `inbox` = `status = matched` a bez označení.
   - `GET/POST /api/keywords`, `PATCH/DELETE /api/keywords/:term` – správa klíčových slov (vrací `KeywordsResponse` se statistikou); `GET /api/sources` – přehled zdrojů (`SourceView`). Typy odpovědí jsou v `packages/shared`, popis zdrojů v `SOURCES` tamtéž.
   - Frontend: `app/app.vue` (rozvržení), `app/components/JobsList.vue` (záložky, karty, označování s okamžitou lokální úpravou + „Zpět“), `KeywordsPanel.vue`, `SourcesPanel.vue`, `HighlightText.vue`; useFetch klíče `jobs`, `keywords`, `sources` – po změně slov `refreshNuxtData(['jobs', 'sources'])`.

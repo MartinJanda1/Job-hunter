@@ -30,8 +30,14 @@ export const jobs = pgTable(
     // Ruční označení uživatelem – nezávislé na status (ten řídí filtr a refilter ho přepisuje)
     mark: text('mark').$type<JobMark>(),
     markedAt: timestamp('marked_at', { withTimezone: true }),
+    // Skupina duplicit (stejný inzerát z více zdrojů) – viz dedupe.ts; označení platí pro celou skupinu
+    dedupeKey: text('dedupe_key'),
   },
-  (t) => [index('jobs_status_found_at_idx').on(t.status, t.foundAt), index('jobs_mark_idx').on(t.mark)],
+  (t) => [
+    index('jobs_status_found_at_idx').on(t.status, t.foundAt),
+    index('jobs_mark_idx').on(t.mark),
+    index('jobs_dedupe_key_idx').on(t.dedupeKey),
+  ],
 )
 
 /**
