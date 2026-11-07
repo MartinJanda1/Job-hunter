@@ -7,6 +7,12 @@ export interface SearchCriteria {
   remoteOnly?: boolean
   minSalaryCzk?: number
   excludeKeywords?: string[]  // např. ["senior", "php"]
+  czechOnly?: boolean         // jen inzeráty v češtině (jasně anglické se vyřadí)
+}
+
+/** Nastavení filtru měnitelná z webu (tabulka settings) */
+export interface FilterSettings {
+  czechOnly: boolean
 }
 
 /** Stav nabídky v našem „pipeline“ */
@@ -141,6 +147,9 @@ export interface KeywordsResponse {
   keywords: KeywordView[]
   /** Kolik nabídek je teď vhodných (status matched) */
   matched: number
+  settings: FilterSettings
+  /** Kolik nabídek odpovídá slovům a lokalitě, ale je jasně v angličtině (skryje je „jen česky“) */
+  englishCount: number
 }
 
 /** Kategorie příchozí pošty */

@@ -1,9 +1,8 @@
 import type { Job, SearchCriteria } from '@job-hunter/shared'
+import { detectLanguage } from './language'
+import { normalize } from './text'
 
-/** Malá písmena bez diakritiky – „Kodér“ i „koder“ se porovnají stejně. */
-export function normalize(s: string): string {
-  return s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
-}
+export { normalize }
 
 /** Další zápisy lokalit (klíč i hodnoty normalizované) */
 const LOCATION_ALIASES: Record<string, string[]> = {
@@ -46,6 +45,8 @@ export function passesHardFilter(job: Pick<Job, 'title' | 'description' | 'locat
   if (!containsAny(text, c.keywords)) return false
   if (!locationMatches(job.location, c.locations)) return false
   if (c.remoteOnly && !containsAny(normalize(`${text} ${job.location ?? ''}`), ['remote'])) return false
+  // Jen česky: vyřadit jen jasně anglické inzeráty; nejasné (např. jen anglický název z hlídače) projdou.
+  if (c.czechOnly && detectLanguage(`${job.title} ${job.description ?? ''}`) === 'en') return false
 
   return true
 }

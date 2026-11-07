@@ -67,6 +67,7 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Klíčová slova ve webovém UI (zapnout/vypnout, přidat, smazat, statistika) a přehled zdrojů
 - [x] Zvýraznění klíčových slov u nabídek, označování (⭐ zajímavá / ✓ odpovězeno / ✕ skrýt) se záložkami
 - [x] Slučování duplicit (stejný inzerát z více zdrojů → jedna karta s odkazy „Také na“)
+- [x] Filtr „Jen inzeráty v češtině“ (vyřadí jasně anglické inzeráty)
 - [ ] Lokalita a vylučující slova ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem
 - [ ] Gmail: třídění příchozí pošty (pohovor / odmítnutí / dotaz)

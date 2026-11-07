@@ -37,6 +37,9 @@ const remove = (k: KeywordView) => {
   if (confirm(`Smazat klíčové slovo „${k.term}“?`)) mutate(() => $fetch<KeywordsResponse>(keywordUrl(k.term), { method: 'DELETE' }))
 }
 
+const toggleCzechOnly = () =>
+  mutate(() => $fetch<KeywordsResponse>('/api/settings', { method: 'PATCH', body: { czechOnly: !data.value?.settings.czechOnly } }))
+
 async function add() {
   const term = newTerm.value.trim()
   if (!term) return
@@ -52,6 +55,11 @@ async function add() {
       Lokalita: <strong>{{ data?.locations.join(', ') }}</strong> ·
       vhodných nabídek: <strong>{{ data?.matched ?? '–' }}</strong>
     </p>
+    <label class="setting">
+      <input type="checkbox" :checked="data?.settings.czechOnly" :disabled="busy || !data" @change="toggleCzechOnly">
+      <span>Jen inzeráty v češtině</span>
+      <small>{{ data?.settings.czechOnly ? 'skryto' : 'skryje' }} {{ data?.englishCount ?? 0 }} anglických</small>
+    </label>
     <p class="hint">Číslo = kolik nabídek v lokalitě slovo obsahuje (i u vypnutých – ukazuje, co by zapnutí přineslo).</p>
 
     <form class="add" @submit.prevent="add">
@@ -77,6 +85,8 @@ async function add() {
 <style scoped>
 .summary { margin: 0 0 4px; font-size: 14px; }
 .hint { margin: 0 0 12px; font-size: 12px; color: #6b717b; }
+.setting { display: flex; align-items: center; gap: 8px; font-size: 14px; margin: 8px 0; padding: 8px 10px; background: #f6f7f9; border-radius: 8px; cursor: pointer; }
+.setting small { margin-left: auto; color: #6b717b; font-size: 12px; }
 .add { display: flex; gap: 8px; margin-bottom: 10px; }
 .add input { flex: 1; min-width: 0; font: inherit; padding: 6px 10px; border: 1px solid #c9ccd1; border-radius: 8px; }
 .add button { font: inherit; padding: 6px 12px; border: 0; border-radius: 8px; background: #1d1f23; color: #fff; cursor: pointer; }

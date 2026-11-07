@@ -71,5 +71,12 @@ export const keywords = pgTable('keywords', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+/** Nastavení filtru měnitelná z webu (klíč → hodnota), např. czechOnly */
+export const settings = pgTable('settings', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export type JobRow = typeof jobs.$inferSelect
 export type NewJobRow = typeof jobs.$inferInsert

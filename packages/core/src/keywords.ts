@@ -1,9 +1,10 @@
 import { asc, eq, sql } from 'drizzle-orm'
-import type { KeywordsResponse } from '@job-hunter/shared'
+import type { FilterSettings, KeywordsResponse } from '@job-hunter/shared'
 import type { Db } from './db/client'
 import { jobs, keywords } from './db/schema'
-import { LOCATIONS, loadCriteria } from './criteria'
+import { LOCATIONS, getSettings, loadCriteria, saveSettings } from './criteria'
 import { containsTerm, locationMatches, normalize } from './filter'
+import { detectLanguage } from './language'
 import { refilterIfCriteriaChanged } from './refilter'
 
 /**
@@ -11,23 +12,36 @@ import { refilterIfCriteriaChanged } from './refilter'
  * lokalitě, které ho obsahují – bez ohledu na ostatní slova. Ukazuje, co by zapnutí přineslo.
  */
 export async function listKeywords(db: Db): Promise<KeywordsResponse> {
-  await loadCriteria(db) // naplní výchozí slova, je-li tabulka prázdná
+  const criteria = await loadCriteria(db) // naplní výchozí slova, je-li tabulka prázdná
   const rows = await db.select().from(keywords).orderBy(asc(keywords.createdAt), asc(keywords.term))
 
-  const texts = (
-    await db.select({ title: jobs.title, description: jobs.description, location: jobs.location }).from(jobs)
+  const inLocation = (
+    await db
+      .select({ id: jobs.id, title: jobs.title, description: jobs.description, location: jobs.location, dedupeKey: jobs.dedupeKey })
+      .from(jobs)
   )
     .filter((j) => locationMatches(j.location ?? undefined, LOCATIONS))
-    .map((j) => normalize(`${j.title} ${j.description ?? ''}`))
+    .map((j) => ({ ...j, raw: `${j.title} ${j.description ?? ''}`, text: normalize(`${j.title} ${j.description ?? ''}`) }))
+  const texts = inLocation.map((j) => j.text)
 
+  // Kolik skupin nabídek (slova + lokalita sedí) je jasně anglicky – tolik skryje „jen česky“
+  const englishGroups = new Set(
+    inLocation
+      .filter((j) => criteria.keywords.some((k) => containsTerm(j.text, k)) && detectLanguage(j.raw) === 'en')
+      .map((j) => j.dedupeKey ?? j.id),
+  )
+
+  // Vhodné = skupiny duplicit (jako počty v záložkách), ne řádky
   const [counts] = await db
-    .select({ matched: sql<number>`count(*)::int` })
+    .select({ matched: sql<number>`count(distinct coalesce(${jobs.dedupeKey}, 'id:' || ${jobs.id}))::int` })
     .from(jobs)
     .where(eq(jobs.status, 'matched'))
 
   return {
     locations: LOCATIONS,
     matched: counts?.matched ?? 0,
+    settings: await getSettings(db),
+    englishCount: englishGroups.size,
     keywords: rows.map((r) => ({
       term: r.term,
       enabled: r.enabled,
@@ -40,6 +54,12 @@ export async function listKeywords(db: Db): Promise<KeywordsResponse> {
 async function afterChange(db: Db): Promise<KeywordsResponse> {
   await refilterIfCriteriaChanged(db, await loadCriteria(db))
   return listKeywords(db)
+}
+
+/** Změna nastavení filtru (např. jen česky) – uloží a přepočítá nabídky. */
+export async function updateSettings(db: Db, patch: Partial<FilterSettings>): Promise<KeywordsResponse> {
+  await saveSettings(db, patch)
+  return afterChange(db)
 }
 
 /** Ověří nové slovo; vrací chybovou zprávu, nebo upravené slovo. */

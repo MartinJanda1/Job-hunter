@@ -43,6 +43,13 @@
       "when": 1794075539301,
       "tag": "0005_magenta_felicia_hardy",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794078756229,
+      "tag": "0006_next_klaw",
+      "breakpoints": true
     }
   ]
 }
