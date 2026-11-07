@@ -34,6 +34,7 @@ export const joobleSource: JobSource = {
   async fetchJobs(criteria, prevState) {
     const key = process.env.JOOBLE_API_KEY
     if (!key) return { jobs: [] } // bez klíče zdroj tiše přeskočit
+    if (!criteria.keywords.length) return { jobs: [] } // bez zapnutých slov by dotaz vrátil vše
     if (isThrottled(prevState, MIN_HOURS_BETWEEN_FETCHES)) return { jobs: [] }
 
     let requests = Number(prevState?.requests ?? 0)

@@ -1,11 +1,15 @@
-// Nanečisto: jak by aktuální kritéria (packages/core/src/criteria.ts) rozdělila uložené nabídky.
-// Do DB nic nezapisuje. Použití: npm run filter:dryrun [-- <počet ukázek, výchozí 40>]
-import { createDb, schema } from '../packages/core/src/index'
-import { criteria } from '../packages/core/src/criteria'
+// Nanečisto: jak by kritéria rozdělila uložené nabídky. Do DB nic nezapisuje.
+// Bez argumentů = aktuální kritéria z DB (zapnutá klíčová slova). S argumenty = vyzkoušet jiný seznam slov:
+//   npm run filter:dryrun                       # aktuální stav
+//   npm run filter:dryrun -- vue react nuxt     # jak by vypadal filtr jen s těmito slovy
+import { createDb, schema, loadCriteria } from '../packages/core/src/index'
 import { passesHardFilter } from '../packages/core/src/filter'
 
-const samples = Number(process.argv[2] ?? 40)
 const db = createDb()
+const criteria = await loadCriteria(db)
+const custom = process.argv.slice(2)
+if (custom.length) criteria.keywords = custom
+
 const rows = await db
   .select({ title: schema.jobs.title, description: schema.jobs.description, location: schema.jobs.location, source: schema.jobs.source, status: schema.jobs.status, company: schema.jobs.company })
   .from(schema.jobs)
@@ -24,9 +28,9 @@ for (const r of rows) {
 }
 
 console.log('Kritéria:', JSON.stringify(criteria))
-console.log('\nzdroj            celkem   dřív vhodné   nově vhodné')
+console.log('\nzdroj            celkem   teď vhodné   s kritérii')
 for (const [src, s] of Object.entries(bySource)) {
-  console.log(`${src.padEnd(16)} ${String(s.total).padStart(6)} ${String(s.before).padStart(13)} ${String(s.matched).padStart(13)}`)
+  console.log(`${src.padEnd(16)} ${String(s.total).padStart(6)} ${String(s.before).padStart(12)} ${String(s.matched).padStart(12)}`)
 }
-console.log(`\nCelkem nově vhodných: ${matched.length} z ${rows.length}\n`)
-for (const r of matched.slice(0, samples)) console.log(` • [${r.source}] ${r.title} | ${r.company ?? '–'} | ${r.location ?? '–'}`)
+console.log(`\nCelkem vhodných s kritérii: ${matched.length} z ${rows.length}\n`)
+for (const r of matched.slice(0, 40)) console.log(` • [${r.source}] ${r.title} | ${r.company ?? '–'} | ${r.location ?? '–'}`)

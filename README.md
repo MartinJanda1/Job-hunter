@@ -64,7 +64,8 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Klíčová slova z CV (zásadní, postupně doplňovat) a lokalita Praha; automatický přepočet po změně kritérií
 - [x] Web za přihlášením (heslo `APP_PASSWORD` ve Vercel env / `.env.local`)
 - [ ] Hodnocení shody s CV přes Claude API
-- [ ] Nastavení kritérií ve webovém UI
+- [x] Klíčová slova ve webovém UI (zapnout/vypnout, přidat, smazat, statistika) a přehled zdrojů
+- [ ] Lokalita a vylučující slova ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem
 - [ ] Gmail: třídění příchozí pošty (pohovor / odmítnutí / dotaz)
 - [x] Vercel projekt `janda3/job-hunter` propojený s GitHubem (push na `main` = deploy)

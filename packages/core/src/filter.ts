@@ -24,9 +24,12 @@ function wordPattern(term: string): RegExp {
   return re
 }
 
-const containsAny = (text: string, terms: string[]) => terms.some((t) => wordPattern(t).test(text))
+/** Obsahuje (už normalizovaný) text výraz jako celé slovo/frázi? */
+export const containsTerm = (normalizedText: string, term: string) => wordPattern(term).test(normalizedText)
 
-function locationMatches(location: string | undefined, locations: string[]): boolean {
+const containsAny = (text: string, terms: string[]) => terms.some((t) => containsTerm(text, t))
+
+export function locationMatches(location: string | undefined, locations: string[]): boolean {
   if (!locations.length) return true
   if (!location) return false
   const loc = normalize(location)

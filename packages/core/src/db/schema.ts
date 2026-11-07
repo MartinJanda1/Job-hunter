@@ -52,5 +52,15 @@ export const mailMessages = pgTable(
   (t) => [index('mail_messages_parsed_at_idx').on(t.parsedAt)],
 )
 
+/**
+ * Klíčová slova filtru – spravují se z webu (panel Klíčová slova). Zapnutá slova tvoří
+ * SearchCriteria.keywords; prázdná tabulka se při prvním načtení naplní DEFAULT_KEYWORDS.
+ */
+export const keywords = pgTable('keywords', {
+  term: text('term').primaryKey(),
+  enabled: boolean('enabled').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export type JobRow = typeof jobs.$inferSelect
 export type NewJobRow = typeof jobs.$inferInsert

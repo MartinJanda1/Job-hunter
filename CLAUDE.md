@@ -22,7 +22,7 @@ npm run db:generate           # po změně packages/core/src/db/schema.ts → no
 npm run db:migrate            # aplikuje migrace na Neon (přes DATABASE_URL_UNPOOLED)
 npm run db:studio             # Drizzle Studio nad DB
 npm run mail:dryrun [-- linkedin]   # parsery nanečisto nad e-maily v mail_messages (do DB nic nezapisuje)
-npm run filter:dryrun [-- 40]       # jak by aktuální criteria.ts rozdělila uložené nabídky (do DB nic nezapisuje)
+npm run filter:dryrun [-- vue react]  # jak by kritéria (z DB, nebo zadaná slova) rozdělila uložené nabídky (do DB nic nezapisuje)
 ```
 
 Testy ani linter zatím nejsou nastavené. Migrace se generují a commitují; schéma DB neměnit ručně.
@@ -42,7 +42,7 @@ Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region 
   - `sources/jooble.ts`: český klíč `JOOBLE_API_KEY` platí jen na `cz.jooble.org`; dotazy šetřit (limit klíče možná ~500 celkem) – při ladění nevolat API zbytečně, stav `requests` v `source_state` ukazuje spotřebu.
   - `sources/mpsv.ts` (Úřad práce, ~190 MB JSON): čte se streamem (`stream-json`), nikdy celé do paměti; podmíněný požadavek přes ETag (304 = nic nového); filtr IT podle CZ-ISCO 25xx/35xx. Plný běh ~11 s, bez změny ~1 s.
   - `filter.ts` má druhý krok `scoreAgainstCv` (TODO): CV z `CV_URL` + popis nabídky → Claude vrátí JSON `{ score: 0–100, reason }`.
-  - Kritéria jsou zatím natvrdo v `criteria.ts` (plán: v DB, editovatelná z UI). Uživatel chce jen zásadní klíčová slova a přidávat je postupně; lokalita jen Praha (remote zdroje tím neprojdou). `filter.ts` porovnává po celých slovech, bez diakritiky a velikosti písmen; lokalita přes aliasy (Prague, Hlavní město Praha…), nabídka bez lokality neprojde.
+  - **Kritéria:** klíčová slova jsou v tabulce `keywords` (term, enabled) a spravují se z webu (panel Klíčová slova: zapnout/vypnout, přidat, smazat, statistika výskytu); `loadCriteria(db)` vrací zapnutá slova + `LOCATIONS` z `criteria.ts`. Prázdnou tabulku naplní `DEFAULT_KEYWORDS` (zapnutá zásadní slova z CV + vypnuté návrhy). Lokalita je zatím v kódu (jen Praha – remote zdroje tím neprojdou). Každá změna slov přes API hned spustí `refilterIfCriteriaChanged`. Uživatel chce zásadní slova a přidávat je postupně. `filter.ts` porovnává po celých slovech, bez diakritiky a velikosti písmen; lokalita přes aliasy (Prague, Hlavní město Praha…), nabídka bez lokality neprojde.
   - `refilter.ts`: na začátku `runSearch` se porovná otisk kritérií s uloženým (`source_state` klíč `_criteria`); po změně se přepočítá stav všech nabídek `matched`/`rejected` (ostatní stavy nechá) – bez notifikací. Změnu kritérií nejdřív ověřit `npm run filter:dryrun`.
   - DB klient je `drizzle-orm/neon-http` (každý dotaz = HTTP požadavek, žádné držené spojení) → bez interaktivních transakcí; víc zápisů najednou řešit jedním příkazem nebo `db.batch`.
   - Balíček se nebuildí (`main` = `src/index.ts`), bundluje ho Nitro. Relativní importy **bez přípony** (`./filter`, ne `./filter.js`).
@@ -52,6 +52,8 @@ Vše běží na **Vercelu (Hobby plán)**: Nuxt app = serverless funkce (region 
   - `server/utils/` – `useDb()`, `requireBearer()` / `requireCronSecret()`, přihlášení `session.ts` (Nitro auto-import).
   - **Přihlášení:** celá aplikace je za heslem (`server/middleware/auth.ts`); výjimky jen `/login`, `/api/auth/*`, `/api/cron/*`, `/api/ingest/*` (vlastní tokeny) a statické soubory. Jedno heslo `APP_PASSWORD`, cookie `jh_session` = expirace + HMAC (`SESSION_SECRET`), 30 dní, bez DB. Změna `SESSION_SECRET` odhlásí všechna zařízení. Nový veřejný endpoint = výslovně ho přidat do `PUBLIC_PREFIXES`. Vercel Deployment Protection na Hobby produkci nechrání, proto vlastní řešení.
   - `GET /api/jobs?status=…|all` – posledních 100 nabídek z DB (výchozí `matched`).
+  - `GET/POST /api/keywords`, `PATCH/DELETE /api/keywords/:term` – správa klíčových slov (vrací `KeywordsResponse` se statistikou); `GET /api/sources` – přehled zdrojů (`SourceView`). Typy odpovědí jsou v `packages/shared`, popis zdrojů v `SOURCES` tamtéž.
+  - Frontend: `app/app.vue` (rozvržení + seznam nabídek), `app/components/KeywordsPanel.vue`, `SourcesPanel.vue`; useFetch klíče `jobs`, `keywords`, `sources` – po změně slov `refreshNuxtData(['jobs', 'sources'])`.
   - `nuxt.config.ts` načítá `../../.env.local` a `../../.env` z kořene repa (Nuxt by jinak četl jen `apps/web/.env`).
   - `nitro-types.d.ts` doplňuje typy nitra pro `nuxt.config` (bez něj `nuxt typecheck` nezná `nitro.vercel`).
 

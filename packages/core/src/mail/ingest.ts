@@ -2,7 +2,7 @@ import { asc, eq, isNull } from 'drizzle-orm'
 import type { RawJob } from '@job-hunter/shared'
 import type { Db } from '../db/client'
 import { mailMessages } from '../db/schema'
-import { criteria } from '../criteria'
+import { loadCriteria } from '../criteria'
 import { notifyNewMatches, saveJobs } from '../jobs'
 import { mailParsers } from './parsers'
 
@@ -87,7 +87,7 @@ export async function ingestMails(db: Db, mails: IncomingMail[]): Promise<Ingest
     }
   }
 
-  const saved = await saveJobs(db, found, criteria)
+  const saved = await saveJobs(db, found, await loadCriteria(db))
   result.jobsInserted = saved.inserted
   result.matched = saved.newMatches.length
   await notifyNewMatches(saved.newMatches)

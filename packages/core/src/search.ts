@@ -1,7 +1,7 @@
 import type { SearchCriteria, SourceState } from '@job-hunter/shared'
 import type { Db } from './db/client'
 import { sourceState } from './db/schema'
-import { criteria as defaultCriteria } from './criteria'
+import { loadCriteria } from './criteria'
 import { notifyNewMatches, saveJobs, type NewMatch } from './jobs'
 import { refilterIfCriteriaChanged } from './refilter'
 import { sources } from './sources'
@@ -19,11 +19,12 @@ export interface SearchResult {
  * Je idempotentní – opakované nebo souběžné spuštění nic nezdvojí. Stav zdroje (ETag…) se uloží
  * až po úspěšném uložení jeho nabídek, takže při chybě se příště zpracuje znovu.
  */
-export async function runSearch(db: Db, criteria: SearchCriteria = defaultCriteria): Promise<SearchResult> {
+export async function runSearch(db: Db, criteriaOverride?: SearchCriteria): Promise<SearchResult> {
   const result: SearchResult = { found: 0, inserted: 0, matched: 0, errors: [] }
   const newMatches: NewMatch[] = []
+  const criteria = criteriaOverride ?? (await loadCriteria(db))
 
-  // Změnila se kritéria (criteria.ts)? Přepočítat i dřív uložené nabídky.
+  // Změnila se kritéria (klíčová slova v DB, lokalita v kódu)? Přepočítat i dřív uložené nabídky.
   const refiltered = await refilterIfCriteriaChanged(db, criteria)
   if (refiltered !== null) result.refiltered = refiltered
 

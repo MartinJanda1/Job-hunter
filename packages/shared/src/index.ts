@@ -56,18 +56,58 @@ export interface JobSource {
   fetchJobs(criteria: SearchCriteria, prevState?: SourceState): Promise<FetchResult>
 }
 
+/** Popis zdroje pro UI (klíč = `JobSource.name`, resp. `MailParser.source`) */
+export interface SourceInfo {
+  label: string
+  /** Způsob přístupu */
+  kind: 'Otevřená data' | 'API' | 'RSS' | 'E-mail (hlídač)'
+  /** Jak často se prochází */
+  schedule: string
+  url: string
+}
+
 /**
- * Zobrazované názvy zdrojů (klíč = `JobSource.name`). Remotive a Remote OK podmínkami API
- * vyžadují uvedení zdroje u nabídky – UI ho proto zobrazuje vždy.
+ * Všechny zdroje nabídek. Remotive a Remote OK podmínkami API vyžadují uvedení zdroje
+ * u nabídky – UI ho proto zobrazuje vždy. Nový zdroj = přidat sem.
  */
-export const SOURCE_LABELS: Record<string, string> = {
-  mpsv: 'Úřad práce ČR',
-  remotive: 'Remotive',
-  remoteok: 'Remote OK',
-  rss: 'We Work Remotely',
-  jooble: 'Jooble',
-  jobscz: 'Jobs.cz (hlídač)',
-  linkedin: 'LinkedIn (hlídač)',
+export const SOURCES: Record<string, SourceInfo> = {
+  mpsv: { label: 'Úřad práce ČR', kind: 'Otevřená data', schedule: '1× denně (při změně dat)', url: 'https://data.mpsv.cz' },
+  jooble: { label: 'Jooble', kind: 'API', schedule: '1× denně', url: 'https://cz.jooble.org' },
+  remotive: { label: 'Remotive', kind: 'API', schedule: '1× za 6 h', url: 'https://remotive.com' },
+  remoteok: { label: 'Remote OK', kind: 'API', schedule: '1× za 6 h', url: 'https://remoteok.com' },
+  rss: { label: 'We Work Remotely', kind: 'RSS', schedule: 'každé 2 h', url: 'https://weworkremotely.com' },
+  jobscz: { label: 'Jobs.cz', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.jobs.cz' },
+  linkedin: { label: 'LinkedIn', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.linkedin.com/jobs' },
+}
+
+/** Zobrazované názvy zdrojů (odvozené ze SOURCES) */
+export const SOURCE_LABELS: Record<string, string> = Object.fromEntries(
+  Object.entries(SOURCES).map(([key, s]) => [key, s.label]),
+)
+
+/** GET /api/sources – jeden řádek přehledu zdrojů */
+export interface SourceView extends SourceInfo {
+  key: string
+  total: number         // nabídek v DB
+  matched: number       // z toho vhodných
+  lastFoundAt?: string  // kdy přibyla poslední nabídka (ISO)
+  lastCheckedAt?: string // kdy se zdroj naposledy úspěšně stáhl (ISO; jen zdroje se stavem)
+}
+
+/** Klíčové slovo filtru */
+export interface KeywordView {
+  term: string
+  enabled: boolean
+  /** Kolik nabídek v DB v hledané lokalitě slovo obsahuje (bez ohledu na ostatní slova) */
+  count: number
+}
+
+/** GET /api/keywords */
+export interface KeywordsResponse {
+  locations: string[]
+  keywords: KeywordView[]
+  /** Kolik nabídek je teď vhodných (status matched) */
+  matched: number
 }
 
 /** Kategorie příchozí pošty */
