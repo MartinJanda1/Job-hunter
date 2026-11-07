@@ -19,6 +19,20 @@ export type JobStatus =
   | 'interview'  // pozvánka na pohovor
   | 'declined'   // odmítnutí od firmy
 
+/** Ruční označení nabídky uživatelem (nezávislé na stavu z filtru – refilter ho nemění) */
+export type JobMark = 'starred' | 'applied' | 'hidden'
+export const JOB_MARKS: readonly JobMark[] = ['starred', 'applied', 'hidden']
+
+/** Záložky seznamu nabídek: inbox = vhodné a zatím neoznačené */
+export type JobListView = 'inbox' | JobMark
+export const JOB_LIST_VIEWS: readonly JobListView[] = ['inbox', 'starred', 'applied', 'hidden']
+
+/** Úsek textu pro zvýraznění (hit = nalezené klíčové slovo) – UI ho vykreslí bez v-html */
+export interface TextPart {
+  text: string
+  hit?: boolean
+}
+
 /** Jedna pracovní nabídka v jednotném tvaru (bez ohledu na zdroj) */
 export interface Job {
   id: string            // `${source}:${externalId}`
@@ -36,6 +50,23 @@ export interface Job {
   score?: number        // 0–100, shoda s CV (LLM)
   scoreReason?: string
   status: JobStatus
+  mark?: JobMark
+}
+
+/** Nabídka pro seznam v UI: bez celého popisu, se zvýrazněnými klíčovými slovy */
+export interface JobListItem extends Omit<Job, 'description'> {
+  /** Zapnutá klíčová slova, která nabídka obsahuje (název nebo popis) */
+  keywords: string[]
+  titleParts: TextPart[]
+  /** Úryvek popisu kolem prvního nalezeného slova */
+  excerpt?: TextPart[]
+}
+
+/** GET /api/jobs?view=… */
+export interface JobsResponse {
+  view: JobListView
+  jobs: JobListItem[]
+  counts: Record<JobListView, number>
 }
 
 /** Nabídka tak, jak ji vrací zdroj – bez polí, která doplní pipeline */

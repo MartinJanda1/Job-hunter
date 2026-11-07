@@ -65,6 +65,7 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Web za přihlášením (heslo `APP_PASSWORD` ve Vercel env / `.env.local`)
 - [ ] Hodnocení shody s CV přes Claude API
 - [x] Klíčová slova ve webovém UI (zapnout/vypnout, přidat, smazat, statistika) a přehled zdrojů
+- [x] Zvýraznění klíčových slov u nabídek, označování (⭐ zajímavá / ✓ odpovězeno / ✕ skrýt) se záložkami
 - [ ] Lokalita a vylučující slova ve webovém UI
 - [ ] Gmail: koncepty odpovědí se schválením jedním klikem
 - [ ] Gmail: třídění příchozí pošty (pohovor / odmítnutí / dotaz)

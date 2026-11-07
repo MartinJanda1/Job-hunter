@@ -27,17 +27,20 @@ async function mutate(request: () => Promise<KeywordsResponse>) {
   }
 }
 
+// URL jako obyčejný string – odvozování typů Nitro rout z template literálu je pro TS příliš hluboké.
+const keywordUrl = (term: string): string => `/api/keywords/${encodeURIComponent(term)}`
+
 const toggle = (k: KeywordView) =>
-  mutate(() => $fetch(`/api/keywords/${encodeURIComponent(k.term)}`, { method: 'PATCH', body: { enabled: !k.enabled } }))
+  mutate(() => $fetch<KeywordsResponse>(keywordUrl(k.term), { method: 'PATCH', body: { enabled: !k.enabled } }))
 
 const remove = (k: KeywordView) => {
-  if (confirm(`Smazat klíčové slovo „${k.term}“?`)) mutate(() => $fetch(`/api/keywords/${encodeURIComponent(k.term)}`, { method: 'DELETE' }))
+  if (confirm(`Smazat klíčové slovo „${k.term}“?`)) mutate(() => $fetch<KeywordsResponse>(keywordUrl(k.term), { method: 'DELETE' }))
 }
 
 async function add() {
   const term = newTerm.value.trim()
   if (!term) return
-  await mutate(() => $fetch('/api/keywords', { method: 'POST', body: { term } }))
+  await mutate(() => $fetch<KeywordsResponse>('/api/keywords', { method: 'POST', body: { term } }))
   if (!error.value) newTerm.value = ''
 }
 </script>

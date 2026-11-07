@@ -29,6 +29,13 @@
       "when": 1794072987080,
       "tag": "0003_unknown_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794073682104,
+      "tag": "0004_gifted_titanium_man",
+      "breakpoints": true
     }
   ]
 }

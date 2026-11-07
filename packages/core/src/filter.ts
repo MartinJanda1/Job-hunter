@@ -14,11 +14,13 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const patternCache = new Map<string, RegExp>()
 
-/** Regex pro celé slovo/frázi v normalizovaném textu („vue“ ano ve „Vue.js“, ne v „revue“). */
+/** Zdroj regexu pro celé slovo/frázi v normalizovaném textu („vue“ ano ve „Vue.js“, ne v „revue“). */
+export const termPatternSource = (term: string) => `(?<![a-z0-9])${escapeRegExp(normalize(term))}(?![a-z0-9])`
+
 function wordPattern(term: string): RegExp {
   let re = patternCache.get(term)
   if (!re) {
-    re = new RegExp(`(?<![a-z0-9])${escapeRegExp(normalize(term))}(?![a-z0-9])`)
+    re = new RegExp(termPatternSource(term))
     patternCache.set(term, re)
   }
   return re

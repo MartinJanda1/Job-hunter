@@ -1,18 +1,11 @@
-import { desc, eq } from 'drizzle-orm'
-import type { Job, JobStatus } from '@job-hunter/shared'
-import { rowToJob, schema } from '@job-hunter/core'
+import { JOB_LIST_VIEWS, type JobListView } from '@job-hunter/shared'
+import { listJobs } from '@job-hunter/core'
 
-// GET /api/jobs?status=matched|rejected|…|all – posledních 100 nabídek (výchozí: jen vhodné).
-export default defineEventHandler(async (event): Promise<Job[]> => {
-  const status = (getQuery(event).status as JobStatus | 'all' | undefined) ?? 'matched'
-  const { jobs } = schema
-
-  const rows = await useDb()
-    .select()
-    .from(jobs)
-    .where(status === 'all' ? undefined : eq(jobs.status, status))
-    .orderBy(desc(jobs.foundAt))
-    .limit(100)
-
-  return rows.map(rowToJob)
+// GET /api/jobs?view=inbox|starred|applied|hidden – nabídky se zvýrazněnými klíčovými slovy + počty záložek
+export default defineEventHandler((event) => {
+  const view = getQuery(event).view ?? 'inbox'
+  if (!JOB_LIST_VIEWS.includes(view as JobListView)) {
+    throw createError({ statusCode: 400, statusMessage: `Neznámé zobrazení: ${view}` })
+  }
+  return listJobs(useDb(), view as JobListView)
 })

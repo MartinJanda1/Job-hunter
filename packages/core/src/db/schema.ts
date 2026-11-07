@@ -1,5 +1,5 @@
 import { boolean, index, integer, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
-import type { JobStatus, SourceState } from '@job-hunter/shared'
+import type { JobMark, JobStatus, SourceState } from '@job-hunter/shared'
 
 /** Stav zdroje mezi běhy (např. ETag datové sady MPSV) */
 export const sourceState = pgTable('source_state', {
@@ -27,8 +27,11 @@ export const jobs = pgTable(
     score: integer('score'),
     scoreReason: text('score_reason'),
     status: text('status').$type<JobStatus>().notNull().default('new'),
+    // Ruční označení uživatelem – nezávislé na status (ten řídí filtr a refilter ho přepisuje)
+    mark: text('mark').$type<JobMark>(),
+    markedAt: timestamp('marked_at', { withTimezone: true }),
   },
-  (t) => [index('jobs_status_found_at_idx').on(t.status, t.foundAt)],
+  (t) => [index('jobs_status_found_at_idx').on(t.status, t.foundAt), index('jobs_mark_idx').on(t.mark)],
 )
 
 /**

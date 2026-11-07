@@ -33,5 +33,6 @@ export function rowToJob(row: JobRow): Job {
     score: row.score ?? undefined,
     scoreReason: row.scoreReason ?? undefined,
     status: row.status,
+    mark: row.mark ?? undefined,
   }
 }
