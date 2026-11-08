@@ -17,8 +17,11 @@ const DATASET_URL = 'https://data.mpsv.cz/od/soubory/volna-mista/volna-mista.jso
 /** CZ-ISCO: 25 = specialisté v oblasti ICT, 35 = technici ICT */
 const IT_ISCO = /^(25|35)/
 
-// TODO: odkaz na detail nabídky na uradprace.cz – formát zatím neověřen; do té doby vyhledávání + ref. číslo v popisu.
-const UP_SEARCH_URL = 'https://www.uradprace.cz/web/cz/vyhledani-volneho-mista'
+/**
+ * Detail nabídky v aplikaci Úřadu práce (up.gov.cz, dřív uradprace.cz – staré vyhledávání vrací 404).
+ * Routa `#/volna-mista-detail/<id>` je z kódu aplikace (volna-mista-app.js), id = portalId z datové sady.
+ */
+export const upDetailUrl = (portalId: number | string) => `https://up.gov.cz/volna-mista-v-cr#/volna-mista-detail/${portalId}`
 
 /** Kódy krajů (RÚIAN) → název, pro lokalitu, když chybí textová adresa */
 const KRAJE: Record<string, string> = {
@@ -74,7 +77,7 @@ function toJob(v: VolneMisto): RawJob {
     company: v.zamestnavatel?.nazev ?? undefined,
     location: location(v),
     salaryText: salaryText(v),
-    url: v.urlAdresa || UP_SEARCH_URL,
+    url: v.urlAdresa || upDetailUrl(v.portalId),
     description: [v.upresnujiciInformace?.cs, ref].filter(Boolean).join('\n\n') || undefined,
     publishedAt: v.datumVlozeni,
   }

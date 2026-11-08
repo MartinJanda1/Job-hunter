@@ -6,7 +6,7 @@ Průzkum z 2026-11-06 (robots.txt, veřejné feedy/API, dokumentace). Zásada: j
 
 | Zdroj | Adaptér | Přístup | Poznámka |
 |---|---|---|---|
-| Úřad práce ČR (otevřená data MPSV) | `sources/mpsv.ts` | `https://data.mpsv.cz/od/soubory/volna-mista/volna-mista.json` | ~190 MB, denní aktualizace, podmíněné stažení přes ETag. Filtr CZ-ISCO 25xx/35xx (IT): ~926 nabídek, ~480 Praha. Mzda od–do, IČO. Vlastní URL má jen zlomek nabídek; formát odkazu na detail na uradprace.cz zatím neověřen. |
+| Úřad práce ČR (otevřená data MPSV) | `sources/mpsv.ts` | `https://data.mpsv.cz/od/soubory/volna-mista/volna-mista.json` | ~190 MB, denní aktualizace, podmíněné stažení přes ETag. Filtr CZ-ISCO 25xx/35xx (IT): ~926 nabídek, ~480 Praha. Mzda od–do, IČO. Vlastní URL (`urlAdresa`) má jen zlomek nabídek, ostatní odkazují na detail `https://up.gov.cz/volna-mista-v-cr#/volna-mista-detail/<portalId>` (routa z kódu aplikace ÚP; staré `uradprace.cz/web/cz/vyhledani-volneho-mista` vrací 404). |
 | We Work Remotely | `sources/rss.ts` | RSS kategorií programming, front-end | Jen remote, anglicky. |
 | Jooble (agregátor) | `sources/jooble.ts` | `POST https://cz.jooble.org/api/{JOOBLE_API_KEY}` | Klíč je vázaný na zemi – **český** klíč (cz.jooble.org/api/about), klíč z jooble.org = jen USA. Agreguje i NoFluffJobs, JobStack, StartupJobs, Cocuma, Teamtailor… Šetříme dotazy (neoficiálně limit ~500 celkem): 1× denně, `ResultOnPage: 100`, klíčová slova čárkou (= nebo), po prvním běhu `datecreatedfrom`; počítadlo `requests` ve stavu zdroje. ID přesahují `Number.MAX_SAFE_INTEGER` → čtou se jako text. Vrací i zahraniční nabídky. |
 | Remotive | `sources/remotive.ts` | `https://remotive.com/api/remote-jobs?category=software-dev` | **Podmínky:** odkaz na URL nabídky na Remotive + uvést Remotive jako zdroj; max. 4 dotazy/den (stahujeme 1× za 6 h); nabídky zpožděné o 24 h; nepřeposílat na jiné job weby. |
@@ -24,6 +24,7 @@ Průzkum z 2026-11-06 (robots.txt, veřejné feedy/API, dokumentace). Zásada: j
 | Portál | Důvod |
 |---|---|
 | Jobs.cz, Prace.cz (Alma Career) | Bez RSS, `robots.txt` zakazuje `/api/` (Prace.cz i `/hledat/`). → hlídače e-mailem |
+| Práce za rohem (pracezarohem.cz, Alma Career) | Prověřeno 2026-11-08: bez RSS/API (`/rss`, `/feed`, `/api` = 404). `robots.txt` výpisy `/nabidky/…` nezakazuje a stránky mají data v `__NEXT_DATA__` (Next.js, 50 nabídek na stránku, bez popisu), ale jde o neoficiální scraping; podmínky služby (almacareer.legal) se vykreslují JS a povolení automatického přístupu se nepodařilo ověřit. Překryv s DB (výpis IT vývoj, Praha, 50 nabídek): jen 2 už známe (z hlídače Jobs.cz). Inzeráty jsou nejspíš z Jobs.cz (stejná firma, `itemBrand` s ID inzerenta Alma Career), hlídač Jobs.cz ale posílá jen část – víc pokrytí dá širší hlídač Jobs.cz, ne PZR. |
 | StartupJobs.cz | Public API je jen pro firmy (vlastní nabídky, token firmy). Interní `/api/offers` neoficiální. → hlídače, případně dotaz na partnerský feed |
 | Profesia.cz | XML feed slouží inzerentům k vkládání nabídek |
 | LinkedIn | Podmínky zakazují scraping. → hlídače |
