@@ -26,6 +26,8 @@ npm run filter:dryrun [-- vue react]  # jak by kritéria (z DB, nebo zadaná slo
 npm run dedupe:dryrun [-- 30]         # skupiny duplicit podle aktuální normalizace (do DB nic nezapisuje)
 ```
 
+**Verze:** jediné číslo verze je `version` v kořenovém `package.json` (balíčky workspace verzi nemají význam). Hlavička webu ukazuje `v<verze> · <commit>` (commit z `VERCEL_GIT_COMMIT_SHA`, lokálně `git`; čas sestavení v tooltipu) – podle commitu je vidět, jestli běží poslední deploy. Při vydání uživatelsky viditelné změny zvednout verzi (nová funkce = minor, oprava = patch) v témže commitu.
+
 Testy ani linter zatím nejsou nastavené. Migrace se generují a commitují; schéma DB neměnit ručně.
 
 ## Architektura
