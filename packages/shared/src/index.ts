@@ -103,6 +103,11 @@ export interface SourceInfo {
   /** Jak často se prochází */
   schedule: string
   url: string
+  /**
+   * Lokalitu hlídá už hlídač na portálu a e-mail ji neuvádí → nabídka bez lokality filtrem
+   * lokality projde (s uvedenou lokalitou se kontroluje normálně).
+   */
+  locationPrefiltered?: boolean
 }
 
 /**
@@ -117,6 +122,9 @@ export const SOURCES: Record<string, SourceInfo> = {
   rss: { label: 'We Work Remotely', kind: 'RSS', schedule: 'každé 2 h', url: 'https://weworkremotely.com' },
   jobscz: { label: 'Jobs.cz', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.jobs.cz' },
   linkedin: { label: 'LinkedIn', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.linkedin.com/jobs' },
+  startupjobs: { label: 'StartupJobs', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.startupjobs.cz', locationPrefiltered: true },
+  pracecz: { label: 'Prace.cz', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.prace.cz' },
+  annonce: { label: 'Annonce', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.annonce.cz', locationPrefiltered: true },
 }
 
 /** Zobrazované názvy zdrojů (odvozené ze SOURCES) */

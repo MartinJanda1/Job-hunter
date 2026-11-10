@@ -1,4 +1,4 @@
-import type { Job, SearchCriteria } from '@job-hunter/shared'
+import { SOURCES, type Job, type SearchCriteria } from '@job-hunter/shared'
 import { detectLanguage } from './language'
 import { normalize } from './text'
 
@@ -37,13 +37,22 @@ export function locationMatches(location: string | undefined, locations: string[
   return locations.some((l) => containsAny(loc, LOCATION_ALIASES[normalize(l)] ?? [l]))
 }
 
+/**
+ * Lokalita nabídky včetně zdroje: hlídače, které lokalitu filtrují už na portálu a v e-mailu ji
+ * neuvádějí (`SOURCES[…].locationPrefiltered`), projdou i bez lokality.
+ */
+export function jobLocationMatches(job: { source: string; location?: string | null }, locations: string[]): boolean {
+  if (!job.location && SOURCES[job.source]?.locationPrefiltered) return true
+  return locationMatches(job.location ?? undefined, locations)
+}
+
 /** 1. krok: rychlý filtr podle pevných kritérií (bez AI) */
-export function passesHardFilter(job: Pick<Job, 'title' | 'description' | 'location'>, c: SearchCriteria): boolean {
+export function passesHardFilter(job: Pick<Job, 'source' | 'title' | 'description' | 'location'>, c: SearchCriteria): boolean {
   const text = normalize(`${job.title} ${job.description ?? ''}`)
 
   if (c.excludeKeywords?.length && containsAny(text, c.excludeKeywords)) return false
   if (!containsAny(text, c.keywords)) return false
-  if (!locationMatches(job.location, c.locations)) return false
+  if (!jobLocationMatches(job, c.locations)) return false
   if (c.remoteOnly && !containsAny(normalize(`${text} ${job.location ?? ''}`), ['remote'])) return false
   // Jen česky: vyřadit jen jasně anglické inzeráty; nejasné (např. jen anglický název z hlídače) projdou.
   if (c.czechOnly && detectLanguage(`${job.title} ${job.description ?? ''}`) === 'en') return false

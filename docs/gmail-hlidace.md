@@ -42,7 +42,7 @@ Filtr pak najdeš v Gmailu: ⚙️ → *Zobrazit všechna nastavení* → *Filtr
 
 Nové e-maily se ukládají do tabulky `mail_messages`. Dokud pro portál není parser (`packages/core/src/mail/parsers.ts`), zůstávají ve stavu `pending`. Parsery vznikají podle skutečných e-mailů – po přidání parseru se čekající e-maily zpracují samy při dalším hodinovém běhu.
 
-Hotové parsery: **Jobs.cz**, **LinkedIn**. Nový parser se ověří nanečisto: `npm run mail:dryrun -- <část adresy odesílatele>`.
+Hotové parsery: **Jobs.cz**, **LinkedIn**, **StartupJobs**, **Prace.cz**, **annonce.cz**. Marketingové e-maily Jobs.cz (`marketing@jobsnovinky.cz` – Gmail je chytí podle jména „Jobs.cz“) nabídky neobsahují a parser nemají. Nový parser se ověří nanečisto: `npm run mail:dryrun -- <část adresy odesílatele>`.
 
 ## Změna INGEST_SECRET
 

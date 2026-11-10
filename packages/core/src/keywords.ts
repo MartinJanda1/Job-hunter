@@ -3,7 +3,7 @@ import type { FilterSettings, KeywordsResponse } from '@job-hunter/shared'
 import type { Db } from './db/client'
 import { jobs, keywords } from './db/schema'
 import { LOCATIONS, getSettings, loadCriteria, saveSettings } from './criteria'
-import { containsTerm, locationMatches, normalize } from './filter'
+import { containsTerm, jobLocationMatches, normalize } from './filter'
 import { detectLanguage } from './language'
 import { refilterIfCriteriaChanged } from './refilter'
 
@@ -17,10 +17,10 @@ export async function listKeywords(db: Db): Promise<KeywordsResponse> {
 
   const inLocation = (
     await db
-      .select({ id: jobs.id, title: jobs.title, description: jobs.description, location: jobs.location, dedupeKey: jobs.dedupeKey })
+      .select({ id: jobs.id, source: jobs.source, title: jobs.title, description: jobs.description, location: jobs.location, dedupeKey: jobs.dedupeKey })
       .from(jobs)
   )
-    .filter((j) => locationMatches(j.location ?? undefined, LOCATIONS))
+    .filter((j) => jobLocationMatches(j, LOCATIONS))
     .map((j) => ({ ...j, raw: `${j.title} ${j.description ?? ''}`, text: normalize(`${j.title} ${j.description ?? ''}`) }))
   const texts = inLocation.map((j) => j.text)
 

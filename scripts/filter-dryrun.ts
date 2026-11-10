@@ -17,7 +17,7 @@ const rows = await db
 const bySource: Record<string, { total: number; matched: number; before: number }> = {}
 const matched: typeof rows = []
 for (const r of rows) {
-  const ok = passesHardFilter({ title: r.title, description: r.description ?? undefined, location: r.location ?? undefined }, criteria)
+  const ok = passesHardFilter({ source: r.source, title: r.title, description: r.description ?? undefined, location: r.location ?? undefined }, criteria)
   const s = (bySource[r.source] ??= { total: 0, matched: 0, before: 0 })
   s.total++
   if (r.status === 'matched') s.before++

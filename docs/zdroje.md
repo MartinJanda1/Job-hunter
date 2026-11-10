@@ -11,12 +11,17 @@ Průzkum z 2026-11-06 (robots.txt, veřejné feedy/API, dokumentace). Zásada: j
 | Jooble (agregátor) | `sources/jooble.ts` | `POST https://cz.jooble.org/api/{JOOBLE_API_KEY}` | Klíč je vázaný na zemi – **český** klíč (cz.jooble.org/api/about), klíč z jooble.org = jen USA. Agreguje i NoFluffJobs, JobStack, StartupJobs, Cocuma, Teamtailor… Šetříme dotazy (neoficiálně limit ~500 celkem): 1× denně, `ResultOnPage: 100`, klíčová slova čárkou (= nebo), po prvním běhu `datecreatedfrom`; počítadlo `requests` ve stavu zdroje. ID přesahují `Number.MAX_SAFE_INTEGER` → čtou se jako text. Vrací i zahraniční nabídky. |
 | Remotive | `sources/remotive.ts` | `https://remotive.com/api/remote-jobs?category=software-dev` | **Podmínky:** odkaz na URL nabídky na Remotive + uvést Remotive jako zdroj; max. 4 dotazy/den (stahujeme 1× za 6 h); nabídky zpožděné o 24 h; nepřeposílat na jiné job weby. |
 | Remote OK | `sources/remoteok.ts` | `https://remoteok.com/api` | **Podmínky:** odkaz na URL nabídky na Remote OK (bez nofollow) + uvést „Remote OK“ jako zdroj; nepoužívat logo. 1× za 6 h. API posílá ne-ASCII znaky dvojitě zakódované – opravuje `fixMojibake`. |
+| Jobs.cz (hlídač) | `mail/parsers/jobscz.ts` | e-mail z uložených hledání | Jen sledovací odkazy `track.jobs.cz` (neotevírat) → ID = otisk pozice + firmy + lokality. |
+| LinkedIn (hlídač) | `mail/parsers/linkedin.ts` | e-mail `jobalerts-noreply@linkedin.com` | ID z `/comm/jobs/view/<ID>/`, kanonická URL bez sledování. |
+| StartupJobs (hlídač) | `mail/parsers/startupjobs.ts` | e-mail `jobot@startupjobs.cz` (sledovaná hledání, „Nabídky práce na míru“) | ID z `/nabidka/<ID>/`, URL bez `utm_*`. E-mail obsahuje jen firmu a pozici – **bez lokality a mzdy**; lokalitu hlídá sledované hledání na portálu (`locationPrefiltered`). |
+| Prace.cz (hlídač) | `mail/parsers/pracecz.ts` | e-mail z uloženého hledání | Jen sledovací odkazy `r.emailing2.prace.cz` (neotevírat) → ID = otisk pozice + firmy + lokality. Lokalita i mzda v kartě. |
+| annonce.cz (hlídací pes HafANN) | `mail/parsers/annonce.ts` | e-mail `hafann@inzerce.annonce.cz` | Tlačítka vedou přes Mandrill (neotevírat), přímá URL `/inzerat/<slug>-<ID>-<kód>.html` je v HTML (`v:roundrect` pro Outlook). Jen název a začátek textu – **bez firmy a lokality**; lokalitu hlídá hlídací pes (`locationPrefiltered`). Potvrzovací e-mail má ukázkové inzeráty → přeskočit. |
 
 ## Plánované
 
 | Zdroj | Přístup | Poznámka |
 |---|---|---|
-| E-mailoví hlídači (Jobs.cz, Prace.cz, StartupJobs, LinkedIn, Indeed, Cocuma, annonce.cz…) | Google Apps Script v Gmailu → endpoint aplikace | Jediná legální cesta k velkým portálům bez veřejného feedu. Parser pro každou šablonu e-mailu. |
+| Další e-mailoví hlídači (Indeed, Cocuma, Profesia…) | Google Apps Script v Gmailu → endpoint aplikace | Jediná legální cesta k velkým portálům bez veřejného feedu. Parser pro každou šablonu e-mailu – až od portálu přijdou skutečné e-maily. |
 | Jobicy | veřejné API / RSS | Jen remote. Ověřit podmínky. |
 
 ## Nepoužívat (bez veřejného přístupu)

@@ -57,8 +57,8 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [x] Průzkum zdrojů nabídek – viz [docs/zdroje.md](docs/zdroje.md)
 - [x] Úřad práce ČR (otevřená data MPSV) – IT nabídky z celé ČR
 - [x] Příjem e-mailů z hlídačů portálů: Google Apps Script → `/api/ingest/mail` (návod: [docs/gmail-hlidace.md](docs/gmail-hlidace.md))
-- [x] Parsery e-mailů: Jobs.cz, LinkedIn
-- [ ] Parsery dalších portálů (Prace.cz, StartupJobs, Indeed, annonce.cz…) – až od nich přijdou e-maily
+- [x] Parsery e-mailů: Jobs.cz, LinkedIn, StartupJobs, Prace.cz, annonce.cz
+- [ ] Parsery dalších portálů (Indeed, Cocuma, Profesia…) – až od nich přijdou e-maily
 - [x] Remote portály s API (Remotive, Remote OK)
 - [x] Jooble API (agregátor – CZ klíč, 1× denně)
 - [x] Klíčová slova z CV (zásadní, postupně doplňovat) a lokalita Praha; automatický přepočet po změně kritérií

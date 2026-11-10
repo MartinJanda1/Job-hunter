@@ -1,7 +1,10 @@
 import type { RawJob } from '@job-hunter/shared'
 import type { IncomingMail } from './ingest'
+import { annonceParser } from './parsers/annonce'
 import { jobsCzParser } from './parsers/jobscz'
 import { linkedInParser } from './parsers/linkedin'
+import { praceCzParser } from './parsers/pracecz'
+import { startupJobsParser } from './parsers/startupjobs'
 
 /**
  * Parser e-mailů jednoho portálu (hlídač nabídek → seznam nabídek).
@@ -20,4 +23,4 @@ export interface MailParser {
 // E-maily bez parseru zůstávají nezpracované (parsed_at = null) a zpracují se při dalším
 // volání /api/ingest/mail (Apps Script ho volá každou hodinu, i bez nové pošty).
 // Po opravě parseru: `update mail_messages set parsed_at = null where parser = '…'`.
-export const mailParsers: MailParser[] = [jobsCzParser, linkedInParser]
+export const mailParsers: MailParser[] = [jobsCzParser, linkedInParser, startupJobsParser, praceCzParser, annonceParser]

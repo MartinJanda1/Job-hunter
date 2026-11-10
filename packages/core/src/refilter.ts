@@ -22,14 +22,14 @@ export async function refilterIfCriteriaChanged(db: Db, criteria: SearchCriteria
   if (prev?.state.hash === hash) return null
 
   const rows = await db
-    .select({ id: jobs.id, title: jobs.title, description: jobs.description, location: jobs.location, status: jobs.status })
+    .select({ id: jobs.id, source: jobs.source, title: jobs.title, description: jobs.description, location: jobs.location, status: jobs.status })
     .from(jobs)
     .where(inArray(jobs.status, ['matched', 'rejected']))
 
   const toMatched: string[] = []
   const toRejected: string[] = []
   for (const r of rows) {
-    const next = passesHardFilter({ title: r.title, description: r.description ?? undefined, location: r.location ?? undefined }, criteria)
+    const next = passesHardFilter({ source: r.source, title: r.title, description: r.description ?? undefined, location: r.location ?? undefined }, criteria)
       ? 'matched'
       : 'rejected'
     if (next !== r.status) (next === 'matched' ? toMatched : toRejected).push(r.id)
