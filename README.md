@@ -61,7 +61,7 @@ npm run cron:search          # v druhém terminálu: jeden běh hledání
 - [ ] Parsery dalších portálů (Indeed, Cocuma, Profesia…) – až od nich přijdou e-maily
 - [x] Remote portály s API (Remotive, Remote OK)
 - [x] Jooble API (agregátor – CZ klíč, 1× denně)
-- [x] Klíčová slova z CV (zásadní, postupně doplňovat) a lokalita Praha; automatický přepočet po změně kritérií
+- [x] Klíčová slova z CV (zásadní, postupně doplňovat) a lokalita Praha + remote; automatický přepočet po změně kritérií
 - [x] Web za přihlášením (heslo `APP_PASSWORD` ve Vercel env / `.env.local`)
 - [ ] Hodnocení shody s CV přes Claude API
 - [x] Klíčová slova ve webovém UI (zapnout/vypnout, přidat, smazat, statistika) a přehled zdrojů

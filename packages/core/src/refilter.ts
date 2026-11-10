@@ -3,13 +3,15 @@ import { eq, inArray } from 'drizzle-orm'
 import type { SearchCriteria } from '@job-hunter/shared'
 import type { Db } from './db/client'
 import { jobs, sourceState } from './db/schema'
-import { passesHardFilter } from './filter'
+import { FILTER_VERSION, passesHardFilter } from './filter'
 
 /** Klíč v source_state, pod kterým je otisk naposledy použitých kritérií */
 const STATE_KEY = '_criteria'
 const UPDATE_BATCH = 1000
 
-const criteriaHash = (c: SearchCriteria) => createHash('sha1').update(JSON.stringify(c)).digest('hex')
+/** Otisk kritérií + verze logiky filtru (změna kteréhokoli = přepočet) */
+const criteriaHash = (c: SearchCriteria) =>
+  createHash('sha1').update(JSON.stringify({ filterVersion: FILTER_VERSION, ...c })).digest('hex')
 
 /**
  * Po změně kritérií přepočítá stav všech uložených nabídek ve stavu matched/rejected
@@ -22,14 +24,14 @@ export async function refilterIfCriteriaChanged(db: Db, criteria: SearchCriteria
   if (prev?.state.hash === hash) return null
 
   const rows = await db
-    .select({ id: jobs.id, source: jobs.source, title: jobs.title, description: jobs.description, location: jobs.location, status: jobs.status })
+    .select({ id: jobs.id, source: jobs.source, title: jobs.title, description: jobs.description, location: jobs.location, remote: jobs.remote, status: jobs.status })
     .from(jobs)
     .where(inArray(jobs.status, ['matched', 'rejected']))
 
   const toMatched: string[] = []
   const toRejected: string[] = []
   for (const r of rows) {
-    const next = passesHardFilter({ source: r.source, title: r.title, description: r.description ?? undefined, location: r.location ?? undefined }, criteria)
+    const next = passesHardFilter({ source: r.source, title: r.title, description: r.description ?? undefined, location: r.location ?? undefined, remote: r.remote ?? undefined }, criteria)
       ? 'matched'
       : 'rejected'
     if (next !== r.status) (next === 'matched' ? toMatched : toRejected).push(r.id)

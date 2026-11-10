@@ -38,16 +38,35 @@ export function locationMatches(location: string | undefined, locations: string[
 }
 
 /**
- * Lokalita nabídky včetně zdroje: hlídače, které lokalitu filtrují už na portálu a v e-mailu ji
- * neuvádějí (`SOURCES[…].locationPrefiltered`), projdou i bez lokality.
+ * Verze logiky filtru – je součástí otisku kritérií v refilter.ts. Po změně chování filtru
+ * (ne kritérií) ji zvýšit, aby se uložené nabídky přepočítaly. Ověřit `npm run filter:dryrun`.
  */
-export function jobLocationMatches(job: { source: string; location?: string | null }, locations: string[]): boolean {
+export const FILTER_VERSION = 2
+
+type LocatedJob = { source: string; location?: string | null; remote?: boolean | null }
+
+/** Výrazy v lokalitě, které znamenají práci na dálku („Remote (Worldwide)“, „Česko (Remote)“…). Hybrid ne. */
+const REMOTE_LOCATION_TERMS = ['remote', 'na dalku']
+
+/** Remote nabídka: příznak od zdroje, celý zdroj je remote, nebo to říká lokalita */
+export function isRemoteJob(job: LocatedJob): boolean {
+  if (job.remote || SOURCES[job.source]?.allRemote) return true
+  return !!job.location && containsAny(normalize(job.location), REMOTE_LOCATION_TERMS)
+}
+
+/**
+ * Lokalita nabídky včetně zdroje: remote nabídky projdou vždy (práce na dálku jde odkudkoli);
+ * hlídače, které lokalitu filtrují už na portálu a v e-mailu ji neuvádějí
+ * (`SOURCES[…].locationPrefiltered`), projdou i bez lokality.
+ */
+export function jobLocationMatches(job: LocatedJob, locations: string[]): boolean {
+  if (isRemoteJob(job)) return true
   if (!job.location && SOURCES[job.source]?.locationPrefiltered) return true
   return locationMatches(job.location ?? undefined, locations)
 }
 
 /** 1. krok: rychlý filtr podle pevných kritérií (bez AI) */
-export function passesHardFilter(job: Pick<Job, 'source' | 'title' | 'description' | 'location'>, c: SearchCriteria): boolean {
+export function passesHardFilter(job: Pick<Job, 'source' | 'title' | 'description' | 'location' | 'remote'>, c: SearchCriteria): boolean {
   const text = normalize(`${job.title} ${job.description ?? ''}`)
 
   if (c.excludeKeywords?.length && containsAny(text, c.excludeKeywords)) return false

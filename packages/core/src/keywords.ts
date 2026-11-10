@@ -17,7 +17,7 @@ export async function listKeywords(db: Db): Promise<KeywordsResponse> {
 
   const inLocation = (
     await db
-      .select({ id: jobs.id, source: jobs.source, title: jobs.title, description: jobs.description, location: jobs.location, dedupeKey: jobs.dedupeKey })
+      .select({ id: jobs.id, source: jobs.source, title: jobs.title, description: jobs.description, location: jobs.location, remote: jobs.remote, dedupeKey: jobs.dedupeKey })
       .from(jobs)
   )
     .filter((j) => jobLocationMatches(j, LOCATIONS))

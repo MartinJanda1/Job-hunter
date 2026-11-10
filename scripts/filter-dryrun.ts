@@ -11,13 +11,13 @@ const custom = process.argv.slice(2)
 if (custom.length) criteria.keywords = custom
 
 const rows = await db
-  .select({ title: schema.jobs.title, description: schema.jobs.description, location: schema.jobs.location, source: schema.jobs.source, status: schema.jobs.status, company: schema.jobs.company })
+  .select({ title: schema.jobs.title, description: schema.jobs.description, location: schema.jobs.location, remote: schema.jobs.remote, source: schema.jobs.source, status: schema.jobs.status, company: schema.jobs.company })
   .from(schema.jobs)
 
 const bySource: Record<string, { total: number; matched: number; before: number }> = {}
 const matched: typeof rows = []
 for (const r of rows) {
-  const ok = passesHardFilter({ source: r.source, title: r.title, description: r.description ?? undefined, location: r.location ?? undefined }, criteria)
+  const ok = passesHardFilter({ source: r.source, title: r.title, description: r.description ?? undefined, location: r.location ?? undefined, remote: r.remote ?? undefined }, criteria)
   const s = (bySource[r.source] ??= { total: 0, matched: 0, before: 0 })
   s.total++
   if (r.status === 'matched') s.before++

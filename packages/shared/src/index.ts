@@ -108,6 +108,8 @@ export interface SourceInfo {
    * lokality projde (s uvedenou lokalitou se kontroluje normálně).
    */
   locationPrefiltered?: boolean
+  /** Všechny nabídky zdroje jsou remote (i když to u nabídky není uvedeno) → projdou filtrem lokality */
+  allRemote?: boolean
 }
 
 /**
@@ -117,9 +119,9 @@ export interface SourceInfo {
 export const SOURCES: Record<string, SourceInfo> = {
   mpsv: { label: 'Úřad práce ČR', kind: 'Otevřená data', schedule: '1× denně (při změně dat)', url: 'https://data.mpsv.cz' },
   jooble: { label: 'Jooble', kind: 'API', schedule: '1× denně', url: 'https://cz.jooble.org' },
-  remotive: { label: 'Remotive', kind: 'API', schedule: '1× za 6 h', url: 'https://remotive.com' },
-  remoteok: { label: 'Remote OK', kind: 'API', schedule: '1× za 6 h', url: 'https://remoteok.com' },
-  rss: { label: 'We Work Remotely', kind: 'RSS', schedule: 'každé 2 h', url: 'https://weworkremotely.com' },
+  remotive: { label: 'Remotive', kind: 'API', schedule: '1× za 6 h', url: 'https://remotive.com', allRemote: true },
+  remoteok: { label: 'Remote OK', kind: 'API', schedule: '1× za 6 h', url: 'https://remoteok.com', allRemote: true },
+  rss: { label: 'We Work Remotely', kind: 'RSS', schedule: 'každé 2 h', url: 'https://weworkremotely.com', allRemote: true },
   jobscz: { label: 'Jobs.cz', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.jobs.cz' },
   linkedin: { label: 'LinkedIn', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.linkedin.com/jobs' },
   startupjobs: { label: 'StartupJobs', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.startupjobs.cz', locationPrefiltered: true },
