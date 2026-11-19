@@ -126,6 +126,7 @@ export const SOURCES: Record<string, SourceInfo> = {
   linkedin: { label: 'LinkedIn', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.linkedin.com/jobs' },
   startupjobs: { label: 'StartupJobs', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.startupjobs.cz', locationPrefiltered: true },
   pracecz: { label: 'Prace.cz', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.prace.cz' },
+  indeed: { label: 'Indeed', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://cz.indeed.com' },
   annonce: { label: 'Annonce', kind: 'E-mail (hlídač)', schedule: 'každou hodinu', url: 'https://www.annonce.cz', locationPrefiltered: true },
 }
 
